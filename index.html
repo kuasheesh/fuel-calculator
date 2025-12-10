@@ -2,210 +2,118 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>dispatch.io | Real World Ops</title>
+    <title>Fuel Uplift Calibrator</title>
     <style>
-        :root { --primary: #002b55; --accent: #00a8e8; --bg: #f4f7f6; --safe: #00b894; --warn: #fdcb6e; --danger: #d63031; }
-        body { font-family: 'Segoe UI', Roboto, sans-serif; background-color: var(--bg); margin: 0; padding: 20px; color: #2d3436; }
+        :root { --blue: #0c2461; --light: #dff9fb; --green: #079992; --red: #e55039; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f1f2f6; padding: 20px; color: #2f3542; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
         
-        .container { max-width: 900px; margin: 0 auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.08); }
-        h1 { text-align: center; margin-bottom: 5px; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; }
-        .sub { text-align: center; color: #636e72; font-size: 0.9rem; margin-bottom: 30px; }
+        h1 { text-align: center; color: var(--blue); margin-bottom: 5px; text-transform: uppercase; }
+        .subtitle { text-align: center; font-size: 0.9rem; color: #7f8c8d; margin-bottom: 25px; }
 
-        /* Flow Diagram */
-        .flow { display: flex; align-items: flex-end; gap: 15px; margin-bottom: 30px; }
-        .box { flex: 1; }
-        .box label { font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: #b2bec3; display: block; margin-bottom: 8px;}
-        .box input { width: 100%; padding: 15px; text-align: center; font-size: 1.2rem; font-weight: 800; border: 2px solid #dfe6e9; border-radius: 8px; text-transform: uppercase; box-sizing: border-box; color: #2d3436;}
-        .box input:focus { border-color: var(--accent); outline: none; background: #f0faff; }
-        .arrow { padding-bottom: 20px; color: #dfe6e9; font-size: 1.5rem; }
+        label { font-weight: bold; font-size: 0.8rem; text-transform: uppercase; color: #57606f; display: block; margin-top: 15px; }
         
-        #curr_stn { border-color: var(--primary); background: #eef5fb; color: var(--primary); }
+        .row { display: flex; gap: 10px; }
+        input, select { width: 100%; padding: 12px; border: 2px solid #dfe4ea; border-radius: 6px; font-size: 1.1rem; font-weight: bold; text-transform: uppercase; text-align: center; }
+        input:focus { border-color: var(--blue); outline: none; }
 
-        button { width: 100%; padding: 18px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: 700; font-size: 1rem; cursor: not-allowed; transition: 0.2s; }
-        button.active { cursor: pointer; background: var(--safe); box-shadow: 0 4px 15px rgba(0,184,148,0.3); }
-        button.active:hover { transform: translateY(-2px); }
+        /* The Slider Section */
+        .slider-box { background: #dff9fb; padding: 15px; border-radius: 8px; margin-top: 20px; border: 1px solid #c7ecee; }
+        .slider-header { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 10px; }
+        input[type=range] { width: 100%; cursor: pointer; }
 
-        /* Results Panel */
-        #result-panel { display: none; margin-top: 40px; }
+        button { width: 100%; padding: 15px; margin-top: 20px; background: var(--blue); color: white; border: none; border-radius: 8px; font-size: 1.1rem; font-weight: bold; cursor: pointer; }
+        button:hover { background: #0a3d62; }
+
+        /* Results */
+        #result-box { display: none; margin-top: 25px; border-top: 2px dashed #ccc; padding-top: 20px; }
+        .big-stat { text-align: center; background: var(--blue); color: white; padding: 20px; border-radius: 10px; }
+        .uplift-val { font-size: 3.5rem; font-weight: 800; display: block; line-height: 1; margin-top: 5px; }
         
-        .hero-section { display: flex; align-items: center; justify-content: space-between; background: var(--primary); color: white; padding: 25px; border-radius: 12px; margin-bottom: 20px; }
-        .hero-label { font-size: 0.9rem; opacity: 0.8; text-transform: uppercase; }
-        .hero-val { font-size: 3.5rem; font-weight: 800; line-height: 1; }
-        .strategy-pill { background: rgba(255,255,255,0.15); padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; margin-top: 10px; display: inline-block; }
+        .breakdown { margin-top: 15px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .bd-item { background: #f1f2f6; padding: 10px; border-radius: 6px; text-align: center; }
+        .bd-lbl { font-size: 0.75rem; color: #747d8c; text-transform: uppercase; }
+        .bd-val { font-size: 1.1rem; font-weight: bold; color: var(--blue); }
 
-        .grid { display: grid; grid-template-columns: 1fr 1.2fr; gap: 25px; }
-        .card { background: #fff; padding: 20px; border-radius: 12px; border: 1px solid #dfe6e9; box-shadow: 0 4px 10px rgba(0,0,0,0.03); }
-        .card-header { font-size: 0.8rem; font-weight: 800; text-transform: uppercase; border-bottom: 2px solid #f1f2f6; padding-bottom: 10px; margin-bottom: 15px; color: #b2bec3; letter-spacing: 0.5px; }
-
-        .data-row { display: flex; justify-content: space-between; font-size: 0.95rem; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dashed #f1f2f6; }
-        .data-row:last-child { border: none; }
-        .lbl { color: #636e72; }
-        .val { font-weight: 700; color: #2d3436; }
-
-        /* Safety Stack Specifics */
-        .stack-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; font-size: 0.9rem; }
-        .stack-name { display: flex; align-items: center; gap: 8px; }
-        .dot { width: 8px; height: 8px; border-radius: 50%; background: #dfe6e9; }
-        .stack-val { font-weight: 700; font-family: 'Consolas', monospace; }
-        
-        .highlight-row { background: #f0faff; padding: 10px; border-radius: 6px; margin-top: 5px; font-weight: bold; color: var(--primary); }
-        
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>✈️ Dispatch.io | Pro</h1>
-    <p class="sub">Realistic Fuel Planning for A320/B737 Ops</p>
+    <h1>⛽ Fuel Uplift Predictor</h1>
+    <p class="subtitle">Calibrated for CCU Outbound Ops</p>
     
-    <div id="status" style="text-align:center; font-size:0.8rem; color:#b2bec3; margin-bottom:15px;">⏳ Initializing Nav Database...</div>
-
-    <div class="flow">
-        <div class="box">
-            <label>Inbound From</label>
-            <input type="text" id="prev_stn" placeholder="DEL">
+    <div class="row">
+        <div style="flex:1">
+            <label>Origin</label>
+            <input type="text" id="origin" value="CCU" readonly style="background:#eee; color:#888;">
         </div>
-        <div class="arrow">➝</div>
-        <div class="box">
-            <label>Current (Uplift At)</label>
-            <input type="text" id="curr_stn" value="CCU">
-        </div>
-        <div class="arrow">➝</div>
-        <div class="box">
+        <div style="flex:1">
             <label>Destination</label>
-            <input type="text" id="next_stn" placeholder="BKK">
+            <input type="text" id="destination" placeholder="DEL">
         </div>
     </div>
 
-    <label style="font-size:0.8rem; font-weight:bold; color:#636e72;">AIRCRAFT CONFIGURATION</label>
-    <select id="ac_type" style="width:100%; padding:12px; margin-top:8px; border: 2px solid #dfe6e9; border-radius: 6px; font-weight: 600;">
-        <option value="A320">Airbus A320 (Domestic Config)</option>
-        <option value="B737">Boeing 737-800 (Domestic Config)</option>
-        <option value="B777">Boeing 777-300ER (Long Haul)</option>
+    <label>Aircraft Type</label>
+    <select id="ac_type">
+        <option value="A320">Airbus A320</option>
+        <option value="B737">Boeing 737-800</option>
+        <option value="B777">Boeing 777-300ER</option>
     </select>
 
-    <button id="calc-btn" onclick="calculate()" disabled>Waiting for Database...</button>
+    <div class="slider-box">
+        <div class="slider-header">
+            <span>Fuel On Board (Arrival)</span>
+            <span id="fob-display" style="color:var(--blue)">3000 kg</span>
+        </div>
+        <input type="range" id="fob-slider" min="0" max="10000" step="100" value="3000" oninput="updateFOB(this.value)">
+        <div style="text-align:center; font-size:0.8rem; color:#666; margin-top:5px;">Drag to match gauge indication</div>
+    </div>
 
-    <div id="result-panel">
-        <div class="hero-section">
-            <div>
-                <div class="hero-label">Total Fuel Required (FOB)</div>
-                <div id="strategy-pill" class="strategy-pill">Analyzing Strategy...</div>
-            </div>
-            <div id="final-uplift" class="hero-val">0 kg</div>
+    <button onclick="calculate()">Calculate Uplift</button>
+
+    <div id="result-box">
+        <div class="big-stat">
+            <span style="opacity:0.8; font-size:0.9rem;">REQUIRED UPLIFT</span>
+            <span id="final-uplift" class="uplift-val">0 kg</span>
         </div>
 
-        <div class="grid">
-            <div class="card">
-                <div class="card-header">1. Inbound Status</div>
-                <div class="data-row">
-                    <span class="lbl">Inbound From:</span>
-                    <span id="lbl-prev" class="val">XXX</span>
-                </div>
-                <div class="data-row">
-                    <span class="lbl">Price @ Origin:</span>
-                    <span id="price-prev" class="val">-</span>
-                </div>
-                <div class="data-row">
-                    <span class="lbl">Est. Arrival Fuel:</span>
-                    <span id="arr-fuel" class="val">0 kg</span>
-                </div>
-                <p id="arr-msg" style="font-size:0.8rem; color:#b2bec3; margin-top:15px; font-style:italic; line-height:1.4;">...</p>
+        <div class="breakdown">
+            <div class="bd-item">
+                <div class="bd-lbl">Trip Distance</div>
+                <div id="dist-val" class="bd-val">0 km</div>
             </div>
-
-            <div class="card">
-                <div class="card-header">2. Departure Build-up</div>
-                
-                <div class="stack-row">
-                    <div class="stack-name"><div class="dot" style="background:#0984e3"></div>Trip Fuel</div>
-                    <div id="s-trip" class="stack-val">0</div>
-                </div>
-                <div class="stack-row">
-                    <div class="stack-name"><div class="dot" style="background:#00cec9"></div>Taxi Fuel</div>
-                    <div id="s-taxi" class="stack-val">0</div>
-                </div>
-                <div class="stack-row">
-                    <div class="stack-name"><div class="dot" style="background:#fdcb6e"></div>Contingency (5%)</div>
-                    <div id="s-cont" class="stack-val">0</div>
-                </div>
-                 <div class="stack-row">
-                    <div class="stack-name"><div class="dot" style="background:#e17055"></div>Alternate (<span id="alt-code">...</span>)</div>
-                    <div id="s-alt" class="stack-val">0</div>
-                </div>
-                 <div class="stack-row">
-                    <div class="stack-name"><div class="dot" style="background:#d63031"></div>Final Reserve</div>
-                    <div id="s-res" class="stack-val">0</div>
-                </div>
-                <div class="stack-row">
-                    <div class="stack-name"><div class="dot" style="background:#6c5ce7"></div>Cmdr. Extra</div>
-                    <div id="s-extra" class="stack-val">0</div>
-                </div>
-
-                <div class="highlight-row stack-row">
-                    <div class="stack-name">MIN BLOCK FUEL</div>
-                    <div id="s-total" class="stack-val">0 kg</div>
-                </div>
-
-                <div style="margin-top:15px; font-size:0.85rem; color:#636e72; border-top:1px solid #f1f2f6; padding-top:10px;">
-                    Tankering Add: <strong id="tanker-add" style="color:var(--safe)">0 kg</strong>
-                </div>
+            <div class="bd-item">
+                <div class="bd-lbl">Total Block Fuel</div>
+                <div id="block-val" class="bd-val">0 kg</div>
             </div>
+        </div>
+        
+        <div style="margin-top:15px; font-size:0.8rem; text-align:center; color:#999;">
+            Block Fuel includes: Trip + Taxi (250) + Cont (5%) + Alt + 30min Reserve
         </div>
     </div>
 </div>
 
 <script>
-    // --- 1. CONFIG & TUNED CONSTANTS ---
-    const SHEET_URL = "airports.csv"; 
-    const BASE_PRICE = 90; 
-    const DEFAULT_TAX = 4;
-
-    // TUNED FOR REALISM (Higher Burn for Climb/Drag + Ground Ops)
-    const acSpecs = {
-        "A320": { 
-            burn: 3.6,        // Increased from 2.8 to account for climb/payload
-            taxi: 250,        // Standard Taxi
-            hold: 1500,       // Final Reserve (30 min @ 1500ft)
-            extra: 500,       // Captain's Discretion
-            max_tanker: 3000 
-        },
-        "B737": { 
-            burn: 3.4, 
-            taxi: 250, 
-            hold: 1400, 
-            extra: 500,
-            max_tanker: 3000 
-        },
-        "B777": { 
-            burn: 8.0, 
-            taxi: 600, 
-            hold: 4000, 
-            extra: 1000,
-            max_tanker: 15000 
-        }
+    // --- CALIBRATION DATA ---
+    // A320 Tuned to ~4.2 kg/km to account for heavy ATC/Climb + 2500kg fixed base
+    const aircraftData = {
+        "A320": { burn_rate: 4.2, base_fixed: 2600 }, 
+        "B737": { burn_rate: 4.1, base_fixed: 2600 },
+        "B777": { burn_rate: 9.5, base_fixed: 6000 }
     };
-
+    
+    // --- LOAD DATABASE ---
+    const SHEET_URL = "airports.csv";
     let airportData = [];
 
-    // --- 2. LOADER ---
     window.onload = async () => {
-        const msg = document.getElementById('status');
-        const btn = document.getElementById('calc-btn');
         try {
             const res = await fetch(SHEET_URL);
-            if(!res.ok) throw new Error("CSV not found");
             const txt = await res.text();
-            if(txt.startsWith("<")) throw new Error("Not a CSV");
-            
             parseCSV(txt);
-            
-            if(airportData.length > 0){
-                msg.innerHTML = `<span style="color:green">✅ Database Online (${airportData.length} airports)</span>`;
-                btn.disabled = false;
-                btn.className = "active";
-                btn.innerText = "CALCULATE REAL FUEL";
-            }
-        } catch(e) { msg.innerText = "Error: " + e.message; msg.style.color = "red"; }
+        } catch (e) { alert("Error loading airports.csv. Ensure it is in the repo."); }
     };
 
     function parseCSV(txt) {
@@ -214,135 +122,54 @@
             let cols = rows[i].split(',');
             if (cols.length >= 3) {
                 let code = cols[0].trim().replace(/"/g, "").toUpperCase();
-                let tax = cols[3] ? parseFloat(cols[3]) : DEFAULT_TAX;
-                if(isNaN(tax)) tax = DEFAULT_TAX;
-                if(code) airportData.push({ code, lat: parseFloat(cols[1]), lon: parseFloat(cols[2]), tax });
+                if(code) airportData.push({ code, lat: parseFloat(cols[1]), lon: parseFloat(cols[2]) });
             }
         }
     }
 
-    // --- 3. MATH UTILS ---
-    function getDist(p1, p2) {
-        const R = 6371;
-        const dLat = (p2.lat - p1.lat) * Math.PI/180;
-        const dLon = (p2.lon - p1.lon) * Math.PI/180;
-        const a = Math.sin(dLat/2)**2 + Math.cos(p1.lat*Math.PI/180)*Math.cos(p2.lat*Math.PI/180) * Math.sin(dLon/2)**2;
-        return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
+    // --- UI HELPERS ---
+    function updateFOB(val) {
+        document.getElementById('fob-display').innerText = val + " kg";
     }
 
-    function findAlternate(destNode) {
-        let nearest = null;
-        let minDist = Infinity;
-        airportData.forEach(stn => {
-            if (stn.code !== destNode.code) {
-                let d = getDist(destNode, stn);
-                if (d < minDist) { minDist = d; nearest = stn; }
-            }
-        });
-        return { stn: nearest, dist: minDist };
-    }
-
-    // --- 4. CORE CALCULATION ---
+    // --- CALCULATION ---
     function calculate() {
-        const pCode = document.getElementById('prev_stn').value.toUpperCase().trim();
-        const cCode = document.getElementById('curr_stn').value.toUpperCase().trim();
-        const nCode = document.getElementById('next_stn').value.toUpperCase().trim();
-        const ac = acSpecs[document.getElementById('ac_type').value];
+        const orgCode = document.getElementById('origin').value.toUpperCase();
+        const dstCode = document.getElementById('destination').value.toUpperCase();
+        const acType = document.getElementById('ac_type').value;
+        const currentFOB = parseInt(document.getElementById('fob-slider').value);
 
-        const prev = airportData.find(a => a.code === pCode);
-        const curr = airportData.find(a => a.code === cCode);
-        const next = airportData.find(a => a.code === nCode);
+        const org = airportData.find(a => a.code === orgCode);
+        const dst = airportData.find(a => a.code === dstCode);
 
-        if (!prev || !curr || !next) { alert("Airport not found."); return; }
+        if (!org || !dst) { alert("Airport code not found."); return; }
 
-        // Prices
-        const pPrev = BASE_PRICE + (BASE_PRICE * prev.tax / 100);
-        const pCurr = BASE_PRICE + (BASE_PRICE * curr.tax / 100);
-        const pNext = BASE_PRICE + (BASE_PRICE * next.tax / 100);
+        // 1. Distance Calculation
+        const R = 6371;
+        const dLat = (dst.lat - org.lat) * Math.PI/180;
+        const dLon = (dst.lon - org.lon) * Math.PI/180;
+        const a = Math.sin(dLat/2)**2 + Math.cos(org.lat*Math.PI/180)*Math.cos(dst.lat*Math.PI/180) * Math.sin(dLon/2)**2;
+        const dist = R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
 
-        // --- INBOUND LOGIC (Arrival) ---
-        let arrFuel = 0;
-        let arrMsg = "";
+        // 2. Block Fuel Logic (Calibrated)
+        const specs = aircraftData[acType];
         
-        // If we came from a cheap place, assume we brought extra. 
-        // If expensive, assume we landed with Reserves + Extra only.
-        if (pPrev < pCurr) {
-            arrFuel = ac.hold + ac.extra + ac.max_tanker; 
-            arrMsg = `Tankered in from ${pCode} (Cheap). Heavy Arrival.`;
-        } else {
-            arrFuel = ac.hold + ac.extra; 
-            arrMsg = `Standard Arrival from ${pCode}.`;
-        }
-
-        // --- OUTBOUND LOGIC (The Stack) ---
+        // Formula: (Distance * BurnRate) + Fixed Base (Taxi/Reserves)
+        // This is a linear regression approximation of complex flight planning
+        let blockFuel = (dist * specs.burn_rate) + specs.base_fixed;
         
-        // 1. Trip Fuel (Increased Burn Rate)
-        const distTrip = getDist(curr, next);
-        const fuelTrip = Math.round(distTrip * ac.burn);
+        // Round to nearest 100kg
+        blockFuel = Math.ceil(blockFuel / 100) * 100;
 
-        // 2. Taxi Fuel (Fixed)
-        const fuelTaxi = ac.taxi;
-
-        // 3. Contingency (5% of Trip)
-        const fuelCont = Math.round(fuelTrip * 0.05);
-
-        // 4. Alternate Fuel
-        const altData = findAlternate(next);
-        let fuelAlt = 0;
-        let altCode = "NONE";
-        if (altData.stn) {
-            fuelAlt = Math.round(altData.dist * ac.burn);
-            altCode = altData.stn.code;
-        }
-
-        // 5. Final Reserve (Holding)
-        const fuelRes = ac.hold;
-
-        // 6. Commander's Extra (Buffer)
-        const fuelExtra = ac.extra;
-
-        // TOTAL MINIMUM BLOCK FUEL
-        const minBlockFuel = fuelTrip + fuelTaxi + fuelCont + fuelAlt + fuelRes + fuelExtra;
-
-        // --- FINANCIAL LOGIC ---
-        let tankerAdd = 0;
-        if (pCurr < pNext) {
-            tankerAdd = ac.max_tanker; // It's cheap here!
-            document.getElementById('strategy-pill').innerText = "TANKERING RECOMMENDED";
-            document.getElementById('strategy-pill').style.background = "#00b894";
-        } else {
-            tankerAdd = 0;
-            document.getElementById('strategy-pill').innerText = "MINIMUM FUEL ADVISED";
-            document.getElementById('strategy-pill').style.background = "#e17055";
-        }
-
-        const targetFOB = minBlockFuel + tankerAdd;
-        
-        // --- UPLIFT ---
-        let uplift = targetFOB - arrFuel;
+        // 3. Uplift Logic
+        let uplift = blockFuel - currentFOB;
         if (uplift < 0) uplift = 0;
 
-        // --- UI UPDATE ---
-        document.getElementById('result-panel').style.display = "block";
+        // Display
+        document.getElementById('result-box').style.display = "block";
         document.getElementById('final-uplift').innerText = uplift.toLocaleString() + " kg";
-        
-        // Arrival Card
-        document.getElementById('lbl-prev').innerText = pCode;
-        document.getElementById('price-prev').innerText = "₹" + pPrev.toFixed(0);
-        document.getElementById('arr-fuel').innerText = arrFuel.toLocaleString() + " kg";
-        document.getElementById('arr-msg').innerText = arrMsg;
-
-        // Departure Stack
-        document.getElementById('s-trip').innerText = fuelTrip.toLocaleString();
-        document.getElementById('s-taxi').innerText = fuelTaxi.toLocaleString();
-        document.getElementById('s-cont').innerText = fuelCont.toLocaleString();
-        document.getElementById('alt-code').innerText = altCode;
-        document.getElementById('s-alt').innerText = fuelAlt.toLocaleString();
-        document.getElementById('s-res').innerText = fuelRes.toLocaleString();
-        document.getElementById('s-extra').innerText = fuelExtra.toLocaleString();
-        
-        document.getElementById('s-total').innerText = minBlockFuel.toLocaleString() + " kg";
-        document.getElementById('tanker-add').innerText = "+ " + tankerAdd.toLocaleString() + " kg";
+        document.getElementById('dist-val').innerText = Math.round(dist) + " km";
+        document.getElementById('block-val').innerText = blockFuel.toLocaleString() + " kg";
     }
 </script>
 
