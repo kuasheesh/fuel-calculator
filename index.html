@@ -7,40 +7,32 @@
         body { font-family: 'Segoe UI', Tahoma, sans-serif; max-width: 600px; margin: 2rem auto; background-color: #f0f4f8; }
         .container { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         h1 { color: #2c3e50; text-align: center; margin-bottom: 5px; }
-        .subtitle { text-align: center; color: #7f8c8d; font-size: 0.9rem; margin-bottom: 25px; }
         
-        label { font-weight: 600; color: #34495e; font-size: 0.9rem; margin-top: 15px; display: block; }
-        input, select { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ced4da; border-radius: 6px; box-sizing: border-box; font-size: 1rem; text-transform: uppercase; }
+        label { font-weight: 600; color: #34495e; margin-top: 15px; display: block; }
+        input, select { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ced4da; border-radius: 6px; box-sizing: border-box; text-transform: uppercase; }
         
-        button { width: 100%; margin-top: 25px; padding: 12px; background: #27ae60; color: white; border: none; border-radius: 6px; font-weight: bold; font-size: 1.1rem; cursor: pointer; transition: 0.2s; }
-        button:hover { background: #219150; }
+        /* Button starts grey/disabled */
+        button { width: 100%; margin-top: 25px; padding: 12px; background: #95a5a6; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: not-allowed; transition: 0.3s; }
+        
+        /* Active button style */
+        button.active { background: #27ae60; cursor: pointer; }
+        button.active:hover { background: #219150; }
 
-        /* Results Styling */
+        .status-box { margin-top: 15px; padding: 10px; border-radius: 6px; font-size: 0.9rem; text-align: center; background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+        .success { background: #d4edda; color: #155724; border-color: #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border-color: #f5c6cb; }
+
         .result-box { margin-top: 25px; padding: 20px; background: #ffffff; border: 1px solid #e1e4e8; border-radius: 8px; display: none; }
-        
-        .strategy-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 15px; border-bottom: 2px solid #f0f0f0; margin-bottom: 15px; }
-        .strategy-title { font-weight: bold; font-size: 1.1rem; }
-        
-        /* Dynamic Colors for Strategy */
-        .tanker-yes { color: #27ae60; } /* Green */
-        .tanker-no { color: #c0392b; }  /* Red */
-
-        .big-stat { text-align: center; margin: 20px 0; }
-        .big-stat span { display: block; font-size: 0.9rem; color: #7f8c8d; }
-        .big-stat strong { font-size: 2.5rem; color: #2c3e50; }
-
-        .price-comparison { background: #f8f9fa; padding: 10px; border-radius: 6px; font-size: 0.9rem; display: flex; justify-content: space-between; }
-        .price-col { width: 48%; }
-        .price-val { font-weight: bold; display: block; margin-top: 4px; }
-        
-        .error { color: #e74c3c; text-align: center; margin-top: 10px; font-weight: bold; }
+        .strategy-header { display: flex; justify-content: space-between; font-weight: bold; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 10px;}
+        .tanker-yes { color: #27ae60; } 
+        .tanker-no { color: #c0392b; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <h1>⛽ Aviation Fuel Tax Optimizer</h1>
-    <p class="subtitle">Base ATF Price: ₹90/kg • Default Tax: 4%</p>
+    <div id="status-msg" class="status-box">⏳ Connecting to airports.csv...</div>
 
     <label>Origin (IATA)</label>
     <input type="text" id="origin" placeholder="e.g. DEL" maxlength="3">
@@ -55,46 +47,31 @@
         <option value="B777">Boeing 777-300ER</option>
     </select>
 
-    <button onclick="calculate()">Calculate Strategy</button>
-    <div id="error-msg" class="error"></div>
+    <button id="calc-btn" onclick="calculate()" disabled>Waiting for Database...</button>
 
     <div id="result" class="result-box">
         <div class="strategy-header">
-            <span class="strategy-title">Recommendation:</span>
-            <span id="strategy-badge" style="font-weight: 800; font-size: 1.1rem;">LOADING...</span>
+            <span>Strategy:</span>
+            <span id="strategy-badge"></span>
         </div>
-
-        <div class="big-stat">
-            <span>Total Fuel Uplift Required</span>
-            <strong id="final-uplift">0 kg</strong>
+        <div>Total Uplift: <strong id="final-uplift" style="font-size:1.5rem">0 kg</strong></div>
+        <div style="margin-top:10px; font-size:0.9rem; color:#555;">
+            Trip Fuel: <span id="trip-fuel">0</span> kg <br>
+            Extra Tankering: <span id="tanker-fuel">0</span> kg <br>
+            <strong>Total Cost: <span id="total-cost">₹0</span></strong>
         </div>
-
-        <div class="price-comparison">
-            <div class="price-col">
-                <span>Origin Cost (Inc. Tax)</span>
-                <span id="org-price" class="price-val">₹0 /kg</span>
-            </div>
-            <div class="price-col" style="text-align: right;">
-                <span>Dest Cost (Inc. Tax)</span>
-                <span id="dst-price" class="price-val">₹0 /kg</span>
-            </div>
-        </div>
-
-        <div style="margin-top: 15px; font-size: 0.9rem; color: #555; line-height: 1.6;">
-            • Trip Fuel Needed: <strong id="trip-fuel">0</strong> kg<br>
-            • Extra "Tankering" Fuel: <strong id="tanker-fuel">0</strong> kg<br>
-            • <strong>Total Bill Estimate: <span id="total-cost">₹0</span></strong>
+        <div style="margin-top:10px; font-size:0.8rem; background:#f8f9fa; padding:5px;">
+            Origin Price: <span id="org-price"></span> | Dest Price: <span id="dst-price"></span>
         </div>
     </div>
 </div>
 
 <script>
-    // --- CONFIGURATION ---
-    const SHEET_URL = "airports.csv"; 
+    // --- 1. CONFIGURATION ---
+    const SHEET_URL = "airports.csv"; // EXACT FILENAME (Case Sensitive!)
     const BASE_PRICE = 90; 
     const DEFAULT_TAX = 4; 
 
-    // Aircraft Specs
     const aircraftData = {
         "A320": { burn: 2.8, tankerLimit: 4000 }, 
         "B737": { burn: 2.6, tankerLimit: 4000 },
@@ -103,40 +80,41 @@
 
     let airportData = [];
 
-    // --- LOAD DATA & DEBUG ---
+    // --- 2. ROBUST DATA LOADER ---
     window.onload = async () => {
-        const errorDiv = document.getElementById('error-msg');
+        const statusBox = document.getElementById('status-msg');
+        const btn = document.getElementById('calc-btn');
         
         try {
             const res = await fetch(SHEET_URL);
             
-            // Check if file exists
-            if (!res.ok) {
-                throw new Error(`Could not find 'airports.csv' (Status: ${res.status}). Make sure it is in the GitHub Repo.`);
-            }
+            // ERROR 1: File Not Found (404)
+            if (res.status === 404) throw new Error("File not found! Is it named 'airports.csv'?");
+            if (!res.ok) throw new Error(`Network Error: ${res.status}`);
 
             const txt = await res.text();
-            
-            // Check if we got an HTML error page instead of CSV
-            if(txt.trim().startsWith("<!DOCTYPE")) {
-                throw new Error("File loaded is HTML, not CSV. Check file path.");
+
+            // ERROR 2: GitHub 404 Page (HTML content)
+            if (txt.trim().startsWith("<!DOCTYPE") || txt.includes("<html")) {
+                throw new Error("Link returned HTML page. Check filename case sensitivity.");
             }
 
             parseCSV(txt);
 
-            // SUCCESS FEEDBACK
-            if (airportData.length > 0) {
-                // Show user what we found
-                const firstFew = airportData.slice(0, 3).map(a => a.code).join(", ");
-                errorDiv.style.color = "green";
-                errorDiv.innerText = `✅ Database Loaded: ${airportData.length} airports found. (Examples: ${firstFew})`;
-            } else {
-                throw new Error("File found, but 0 airports were read. Check CSV formatting.");
-            }
+            // ERROR 3: Empty Parse
+            if (airportData.length === 0) throw new Error("File loaded, but found 0 airports. Check CSV format.");
 
-        } catch (e) { 
-            errorDiv.style.color = "red";
-            errorDiv.innerText = "❌ STARTUP ERROR: " + e.message; 
+            // SUCCESS
+            statusBox.className = "status-box success";
+            statusBox.innerText = `✅ Loaded ${airportData.length} airports. System Ready.`;
+            btn.disabled = false;
+            btn.innerText = "Calculate Strategy";
+            btn.className = "active";
+
+        } catch (e) {
+            statusBox.className = "status-box error";
+            statusBox.innerText = "❌ ERROR: " + e.message;
+            console.error(e);
         }
     };
 
@@ -144,12 +122,12 @@
         const rows = csvText.split('\n');
         for (let i = 1; i < rows.length; i++) {
             let cols = rows[i].split(',');
-            if (cols.length >= 3) {
-                let code = cols[0].trim().replace(/"/g, "").toUpperCase(); // Force Uppercase
+            if (cols.length >= 3) { // Ensure enough columns
+                let code = cols[0].trim().replace(/"/g, "").toUpperCase();
                 let taxVal = cols[3] ? parseFloat(cols[3]) : NaN;
                 if (isNaN(taxVal)) taxVal = DEFAULT_TAX;
 
-                if (code.length > 0) {
+                if (code.length >= 3) { // Ensure valid code
                     airportData.push({
                         code: code,
                         lat: parseFloat(cols[1]),
@@ -161,39 +139,27 @@
         }
     }
 
-    // --- CALCULATE ---
+    // --- 3. CALCULATION ---
     function calculate() {
         const orgCode = document.getElementById('origin').value.toUpperCase().trim();
         const dstCode = document.getElementById('destination').value.toUpperCase().trim();
-        const errorDiv = document.getElementById('error-msg');
-        
-        // Reset Error Color
-        errorDiv.style.color = "red";
+        const ac = aircraftData[document.getElementById('ac_type').value];
+        const resBox = document.getElementById('result');
+        const statusBox = document.getElementById('status-msg');
 
-        // 1. CHECK IF DB IS READY
-        if (airportData.length === 0) {
-            errorDiv.innerText = "⚠️ Database is empty. Wait for '✅ Database Loaded' message.";
-            return;
-        }
+        // Reset
+        resBox.style.display = "none";
+        statusBox.className = "status-box success"; 
+        statusBox.innerText = "✅ Ready";
 
-        // 2. FIND AIRPORTS
         const org = airportData.find(a => a.code === orgCode);
         const dst = airportData.find(a => a.code === dstCode);
 
-        if (!org) {
-            errorDiv.innerText = `❌ Error: Origin '${orgCode}' not found in database.`;
-            return;
-        }
-        if (!dst) {
-            errorDiv.innerText = `❌ Error: Destination '${dstCode}' not found in database.`;
-            return;
-        }
+        // Validation
+        if (!org) { statusBox.className = "status-box error"; statusBox.innerText = `❌ Origin '${orgCode}' not found.`; return; }
+        if (!dst) { statusBox.className = "status-box error"; statusBox.innerText = `❌ Dest '${dstCode}' not found.`; return; }
 
-        // ... REST OF CALCULATION (Same as before) ...
-        const ac = aircraftData[document.getElementById('ac_type').value];
-        const resBox = document.getElementById('result');
-        errorDiv.innerText = ""; // Clear errors
-
+        // Calculations
         const orgFinalPrice = BASE_PRICE + (BASE_PRICE * (org.tax / 100));
         const dstFinalPrice = BASE_PRICE + (BASE_PRICE * (dst.tax / 100));
 
@@ -207,29 +173,33 @@
         const reserves = 2500;
         let tankerFuel = 0;
         let strategy = "";
-        let strategyStyle = "";
+        let strategyClass = "";
 
         if (orgFinalPrice < dstFinalPrice) {
             tankerFuel = ac.tankerLimit;
             strategy = "TANKERING ADVISED";
-            strategyStyle = "tanker-yes";
+            strategyClass = "tanker-yes";
         } else {
             tankerFuel = 0;
             strategy = "MINIMUM FUEL";
-            strategyStyle = "tanker-no";
+            strategyClass = "tanker-no";
         }
 
         const totalUplift = tripFuel + reserves + tankerFuel;
         const totalCost = totalUplift * orgFinalPrice;
 
+        // Display
         resBox.style.display = "block";
         document.getElementById('strategy-badge').innerText = strategy;
-        document.getElementById('strategy-badge').className = strategyStyle;
+        document.getElementById('strategy-badge').className = strategyClass;
         document.getElementById('final-uplift').innerText = totalUplift.toLocaleString() + " kg";
-        document.getElementById('org-price').innerText = "₹" + orgFinalPrice.toFixed(2);
-        document.getElementById('dst-price').innerText = "₹" + dstFinalPrice.toFixed(2);
         document.getElementById('trip-fuel').innerText = tripFuel.toLocaleString();
         document.getElementById('tanker-fuel').innerText = tankerFuel.toLocaleString();
         document.getElementById('total-cost').innerText = "₹" + Math.round(totalCost).toLocaleString();
+        document.getElementById('org-price').innerText = "₹" + orgFinalPrice.toFixed(1);
+        document.getElementById('dst-price').innerText = "₹" + dstFinalPrice.toFixed(1);
     }
 </script>
+
+</body>
+</html>
