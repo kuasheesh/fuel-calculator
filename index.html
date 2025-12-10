@@ -2,145 +2,203 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aircraft Fuel Estimator</title>
+    <title>Fuel Tax Optimizer</title>
     <style>
-        body { font-family: sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; background-color: #f4f4f9; }
-        .container { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        h1 { color: #2c3e50; text-align: center; }
-        label { display: block; margin-top: 1rem; font-weight: bold; }
-        select, input { width: 100%; padding: 0.5rem; margin-top: 0.5rem; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;}
-        button { width: 100%; margin-top: 1.5rem; padding: 0.75rem; background-color: #007bff; color: white; border: none; border-radius: 4px; font-size: 1rem; cursor: pointer; }
-        button:hover { background-color: #0056b3; }
-        #result { margin-top: 2rem; padding: 1rem; background-color: #e9ecef; border-radius: 4px; display: none; }
-        .error { color: red; text-align: center; margin-top: 1rem; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; max-width: 600px; margin: 2rem auto; background-color: #f0f4f8; }
+        .container { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; text-align: center; margin-bottom: 5px; }
+        .subtitle { text-align: center; color: #7f8c8d; font-size: 0.9rem; margin-bottom: 25px; }
+        
+        label { font-weight: 600; color: #34495e; font-size: 0.9rem; margin-top: 15px; display: block; }
+        input, select { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ced4da; border-radius: 6px; box-sizing: border-box; font-size: 1rem; text-transform: uppercase; }
+        
+        button { width: 100%; margin-top: 25px; padding: 12px; background: #27ae60; color: white; border: none; border-radius: 6px; font-weight: bold; font-size: 1.1rem; cursor: pointer; transition: 0.2s; }
+        button:hover { background: #219150; }
+
+        /* Results Styling */
+        .result-box { margin-top: 25px; padding: 20px; background: #ffffff; border: 1px solid #e1e4e8; border-radius: 8px; display: none; }
+        
+        .strategy-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 15px; border-bottom: 2px solid #f0f0f0; margin-bottom: 15px; }
+        .strategy-title { font-weight: bold; font-size: 1.1rem; }
+        
+        /* Dynamic Colors for Strategy */
+        .tanker-yes { color: #27ae60; } /* Green */
+        .tanker-no { color: #c0392b; }  /* Red */
+
+        .big-stat { text-align: center; margin: 20px 0; }
+        .big-stat span { display: block; font-size: 0.9rem; color: #7f8c8d; }
+        .big-stat strong { font-size: 2.5rem; color: #2c3e50; }
+
+        .price-comparison { background: #f8f9fa; padding: 10px; border-radius: 6px; font-size: 0.9rem; display: flex; justify-content: space-between; }
+        .price-col { width: 48%; }
+        .price-val { font-weight: bold; display: block; margin-top: 4px; }
+        
+        .error { color: #e74c3c; text-align: center; margin-top: 10px; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>✈️ Aircraft Fuel Estimator</h1>
-    
-    <label for="origin">Origin Airport (Code)</label>
-    <select id="origin"><option>Loading airports...</option></select>
+    <h1>⛽ Aviation Fuel Tax Optimizer</h1>
+    <p class="subtitle">Base ATF Price: ₹90/kg • Default Tax: 4%</p>
 
-    <label for="destination">Destination Airport (Code)</label>
-    <select id="destination"><option>Loading airports...</option></select>
+    <label>Origin (IATA)</label>
+    <input type="text" id="origin" placeholder="e.g. DEL" maxlength="3">
 
-    <label for="ac_type">Aircraft Type</label>
+    <label>Destination (IATA)</label>
+    <input type="text" id="destination" placeholder="e.g. BOM" maxlength="3">
+
+    <label>Aircraft Type</label>
     <select id="ac_type">
         <option value="A320">Airbus A320</option>
         <option value="B737">Boeing 737-800</option>
         <option value="B777">Boeing 777-300ER</option>
-        <option value="A350">Airbus A350-900</option>
     </select>
 
-    <label for="payload">Onboard Quantity (Payload kg)</label>
-    <input type="number" id="payload" value="10000" min="0">
-
-    <button onclick="calculate()">Calculate Final Fuel</button>
-
-    <div id="result"></div>
+    <button onclick="calculate()">Calculate Strategy</button>
     <div id="error-msg" class="error"></div>
+
+    <div id="result" class="result-box">
+        <div class="strategy-header">
+            <span class="strategy-title">Recommendation:</span>
+            <span id="strategy-badge" style="font-weight: 800; font-size: 1.1rem;">LOADING...</span>
+        </div>
+
+        <div class="big-stat">
+            <span>Total Fuel Uplift Required</span>
+            <strong id="final-uplift">0 kg</strong>
+        </div>
+
+        <div class="price-comparison">
+            <div class="price-col">
+                <span>Origin Cost (Inc. Tax)</span>
+                <span id="org-price" class="price-val">₹0 /kg</span>
+            </div>
+            <div class="price-col" style="text-align: right;">
+                <span>Dest Cost (Inc. Tax)</span>
+                <span id="dst-price" class="price-val">₹0 /kg</span>
+            </div>
+        </div>
+
+        <div style="margin-top: 15px; font-size: 0.9rem; color: #555; line-height: 1.6;">
+            • Trip Fuel Needed: <strong id="trip-fuel">0</strong> kg<br>
+            • Extra "Tankering" Fuel: <strong id="tanker-fuel">0</strong> kg<br>
+            • <strong>Total Bill Estimate: <span id="total-cost">₹0</span></strong>
+        </div>
+    </div>
 </div>
 
 <script>
-    // --- 1. CONFIGURATION ---
-    // PASTE YOUR GOOGLE SHEET CSV LINK INSIDE THE QUOTES BELOW
-     const SHEET_URL = "airports.csv";
-    // Aircraft Specs: Burn (kg/km)
+    // --- CONFIGURATION ---
+    const SHEET_URL = "airports.csv"; 
+    const BASE_PRICE = 90; // Rs 90 per kg
+    const DEFAULT_TAX = 4; // 4% if blank
+
+    // Aircraft Specs
     const aircraftData = {
-        "A320": { burn: 2.8 },
-        "B737": { burn: 2.6 },
-        "B777": { burn: 7.5 },
-        "A350": { burn: 6.0 }
+        "A320": { burn: 2.8, tankerLimit: 4000 }, 
+        "B737": { burn: 2.6, tankerLimit: 4000 },
+        "B777": { burn: 7.5, tankerLimit: 15000 }
     };
 
     let airportData = [];
 
-    // --- 2. LOAD DATA ON STARTUP ---
-    window.onload = async function() {
+    // --- LOAD DATA ---
+    window.onload = async () => {
         try {
-            const response = await fetch(SHEET_URL);
-            const data = await response.text();
-            parseCSV(data);
-        } catch (error) {
-            document.getElementById('error-msg').innerText = "Error loading Google Sheet. Check your URL.";
-            console.error(error);
-        }
+            const res = await fetch(SHEET_URL);
+            if(!res.ok) throw new Error("CSV not found");
+            const txt = await res.text();
+            parseCSV(txt);
+        } catch (e) { document.getElementById('error-msg').innerText = "❌ Error: Upload airports.csv to GitHub"; }
     };
 
     function parseCSV(csvText) {
         const rows = csvText.split('\n');
-        const originSelect = document.getElementById('origin');
-        const destSelect = document.getElementById('destination');
-        
-        // Clear loading options
-        originSelect.innerHTML = '';
-        destSelect.innerHTML = '';
-
-        // Skip header row (i=1)
         for (let i = 1; i < rows.length; i++) {
-            const cols = rows[i].split(',');
+            let cols = rows[i].split(',');
             if (cols.length >= 3) {
-                const code = cols[0].trim();
-                const lat = parseFloat(cols[1]);
-                const lon = parseFloat(cols[2]);
-                
-                if (code && !isNaN(lat)) {
-                    airportData.push({ code, lat, lon });
-                    
-                    // Add to dropdowns
-                    let opt1 = new Option(code, code);
-                    let opt2 = new Option(code, code);
-                    originSelect.add(opt1);
-                    destSelect.add(opt2);
-                }
+                // Parse Tax (Column 3). If empty/undefined, use Default.
+                let taxVal = cols[3] ? parseFloat(cols[3]) : NaN;
+                if (isNaN(taxVal)) taxVal = DEFAULT_TAX;
+
+                airportData.push({
+                    code: cols[0].trim().replace(/"/g, ""),
+                    lat: parseFloat(cols[1]),
+                    lon: parseFloat(cols[2]),
+                    tax: taxVal
+                });
             }
         }
     }
 
-    // --- 3. CALCULATION LOGIC ---
+    // --- CALCULATE ---
     function calculate() {
-        const orgCode = document.getElementById('origin').value;
-        const dstCode = document.getElementById('destination').value;
-        const acType = document.getElementById('ac_type').value;
-        const payload = parseFloat(document.getElementById('payload').value);
+        const orgCode = document.getElementById('origin').value.toUpperCase().trim();
+        const dstCode = document.getElementById('destination').value.toUpperCase().trim();
+        const ac = aircraftData[document.getElementById('ac_type').value];
+        const errorDiv = document.getElementById('error-msg');
+        const resBox = document.getElementById('result');
 
-        if (orgCode === dstCode) {
-            alert("Origin and Destination cannot be the same!");
-            return;
-        }
+        // Reset UI
+        errorDiv.innerText = "";
+        resBox.style.display = "none";
 
+        // Find Airports
         const org = airportData.find(a => a.code === orgCode);
         const dst = airportData.find(a => a.code === dstCode);
 
-        // 1. Calculate Distance (Haversine Formula)
-        const R = 6371; // Earth radius km
-        const dLat = (dst.lat - org.lat) * Math.PI / 180;
-        const dLon = (dst.lon - org.lon) * Math.PI / 180;
-        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                  Math.cos(org.lat * Math.PI / 180) * Math.cos(dst.lat * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-        const distance = R * c;
+        if (!org || !dst) {
+            errorDiv.innerText = "⚠️ Airport code not found in database.";
+            return;
+        }
 
-        // 2. Fuel Formula
-        const specs = aircraftData[acType];
-        const tripFuel = distance * specs.burn;
-        const payloadPenalty = (payload * 0.004) * (distance / 100);
-        const reserves = 2500;
+        // 1. Calculate Prices (Base + Tax)
+        const orgFinalPrice = BASE_PRICE + (BASE_PRICE * (org.tax / 100));
+        const dstFinalPrice = BASE_PRICE + (BASE_PRICE * (dst.tax / 100));
+
+        // 2. Calculate Distance (Haversine)
+        const R = 6371; 
+        const dLat = (dst.lat - org.lat) * Math.PI/180;
+        const dLon = (dst.lon - org.lon) * Math.PI/180;
+        const a = Math.sin(dLat/2)**2 + Math.cos(org.lat*Math.PI/180)*Math.cos(dst.lat*Math.PI/180) * Math.sin(dLon/2)**2;
+        const dist = R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
+
+        // 3. Fuel Requirements
+        const tripFuel = Math.round(dist * ac.burn);
+        const reserves = 2500; // Fixed reserves
+        let tankerFuel = 0;
+        let strategy = "";
+        let strategyStyle = "";
+
+        // 4. STRATEGY LOGIC
+        // If Origin is cheaper than Destination, carry extra fuel
+        if (orgFinalPrice < dstFinalPrice) {
+            tankerFuel = ac.tankerLimit; // Load extra to save money later
+            strategy = "TANKERING RECOMMENDED";
+            strategyStyle = "tanker-yes";
+        } else {
+            tankerFuel = 0; // Fuel is expensive here, take minimum
+            strategy = "MINIMUM FUEL (Expensive Origin)";
+            strategyStyle = "tanker-no";
+        }
+
+        const totalUplift = tripFuel + reserves + tankerFuel;
+        const totalCost = totalUplift * orgFinalPrice;
+
+        // 5. Display Results
+        resBox.style.display = "block";
+        document.getElementById('strategy-badge').innerText = strategy;
+        document.getElementById('strategy-badge').className = strategyStyle;
+
+        document.getElementById('final-uplift').innerText = totalUplift.toLocaleString() + " kg";
         
-        const totalFuel = Math.round(tripFuel + payloadPenalty + reserves);
+        document.getElementById('org-price').innerText = "₹" + orgFinalPrice.toFixed(2);
+        document.getElementById('dst-price').innerText = "₹" + dstFinalPrice.toFixed(2);
 
-        // 3. Display
-        const resultDiv = document.getElementById('result');
-        resultDiv.style.display = "block";
-        resultDiv.innerHTML = `
-            <h3>Final Fuel Figure: ${totalFuel} kg</h3>
-            <p><strong>Distance:</strong> ${Math.round(distance)} km</p>
-            <p><strong>Trip Fuel:</strong> ${Math.round(tripFuel)} kg</p>
-            <p><strong>Reserves:</strong> ${reserves} kg</p>
-        `;
+        document.getElementById('trip-fuel').innerText = tripFuel.toLocaleString();
+        document.getElementById('tanker-fuel').innerText = tankerFuel.toLocaleString();
+        document.getElementById('total-cost').innerText = "₹" + Math.round(totalCost).toLocaleString();
     }
 </script>
 
