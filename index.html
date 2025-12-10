@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aircraft Fuel Estimator</title>
+    <style>
+        body { font-family: sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; background-color: #f4f4f9; }
+        .container { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; text-align: center; }
+        label { display: block; margin-top: 1rem; font-weight: bold; }
+        select, input { width: 100%; padding: 0.5rem; margin-top: 0.5rem; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;}
+        button { width: 100%; margin-top: 1.5rem; padding: 0.75rem; background-color: #007bff; color: white; border: none; border-radius: 4px; font-size: 1rem; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+        #result { margin-top: 2rem; padding: 1rem; background-color: #e9ecef; border-radius: 4px; display: none; }
+        .error { color: red; text-align: center; margin-top: 1rem; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>✈️ Aircraft Fuel Estimator</h1>
+    
+    <label for="origin">Origin Airport (Code)</label>
+    <select id="origin"><option>Loading airports...</option></select>
+
+    <label for="destination">Destination Airport (Code)</label>
+    <select id="destination"><option>Loading airports...</option></select>
+
+    <label for="ac_type">Aircraft Type</label>
+    <select id="ac_type">
+        <option value="A320">Airbus A320</option>
+        <option value="B737">Boeing 737-800</option>
+        <option value="B777">Boeing 777-300ER</option>
+        <option value="A350">Airbus A350-900</option>
+    </select>
+
+    <label for="payload">Onboard Quantity (Payload kg)</label>
+    <input type="number" id="payload" value="10000" min="0">
+
+    <button onclick="calculate()">Calculate Final Fuel</button>
+
+    <div id="result"></div>
+    <div id="error-msg" class="error"></div>
+</div>
+
+<script>
+    // --- 1. CONFIGURATION ---
+    // PASTE YOUR GOOGLE SHEET CSV LINK INSIDE THE QUOTES BELOW
+    const SHEET_URL = "https://docs.google.com/spreadsheets/d/1QrLpebSFPy4zsADGr5i-EKKnZfHw2WGMLVjQIMB2700/edit?gid=0#gid=0"; 
+
+    // Aircraft Specs: Burn (kg/km)
+    const aircraftData = {
+        "A320": { burn: 2.8 },
+        "B737": { burn: 2.6 },
+        "B777": { burn: 7.5 },
+        "A350": { burn: 6.0 }
+    };
+
+    let airportData = [];
+
+    // --- 2. LOAD DATA ON STARTUP ---
+    window.onload = async function() {
+        try {
+            const response = await fetch(SHEET_URL);
+            const data = await response.text();
+            parseCSV(data);
+        } catch (error) {
+            document.getElementById('error-msg').innerText = "Error loading Google Sheet. Check your URL.";
+            console.error(error);
+        }
+    };
+
+    function parseCSV(csvText) {
+        const rows = csvText.split('\n');
+        const originSelect = document.getElementById('origin');
+        const destSelect = document.getElementById('destination');
+        
+        // Clear loading options
+        originSelect.innerHTML = '';
+        destSelect.innerHTML = '';
+
+        // Skip header row (i=1)
+        for (let i = 1; i < rows.length; i++) {
+            const cols = rows[i].split(',');
+            if (cols.length >= 3) {
+                const code = cols[0].trim();
+                const lat = parseFloat(cols[1]);
+                const lon = parseFloat(cols[2]);
+                
+                if (code && !isNaN(lat)) {
+                    airportData.push({ code, lat, lon });
+                    
+                    // Add to dropdowns
+                    let opt1 = new Option(code, code);
+                    let opt2 = new Option(code, code);
+                    originSelect.add(opt1);
+                    destSelect.add(opt2);
+                }
+            }
+        }
+    }
+
+    // --- 3. CALCULATION LOGIC ---
+    function calculate() {
+        const orgCode = document.getElementById('origin').value;
+        const dstCode = document.getElementById('destination').value;
+        const acType = document.getElementById('ac_type').value;
+        const payload = parseFloat(document.getElementById('payload').value);
+
+        if (orgCode === dstCode) {
+            alert("Origin and Destination cannot be the same!");
+            return;
+        }
+
+        const org = airportData.find(a => a.code === orgCode);
+        const dst = airportData.find(a => a.code === dstCode);
+
+        // 1. Calculate Distance (Haversine Formula)
+        const R = 6371; // Earth radius km
+        const dLat = (dst.lat - org.lat) * Math.PI / 180;
+        const dLon = (dst.lon - org.lon) * Math.PI / 180;
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                  Math.cos(org.lat * Math.PI / 180) * Math.cos(dst.lat * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        const distance = R * c;
+
+        // 2. Fuel Formula
+        const specs = aircraftData[acType];
+        const tripFuel = distance * specs.burn;
+        const payloadPenalty = (payload * 0.004) * (distance / 100);
+        const reserves = 2500;
+        
+        const totalFuel = Math.round(tripFuel + payloadPenalty + reserves);
+
+        // 3. Display
+        const resultDiv = document.getElementById('result');
+        resultDiv.style.display = "block";
+        resultDiv.innerHTML = `
+            <h3>Final Fuel Figure: ${totalFuel} kg</h3>
+            <p><strong>Distance:</strong> ${Math.round(distance)} km</p>
+            <p><strong>Trip Fuel:</strong> ${Math.round(tripFuel)} kg</p>
+            <p><strong>Reserves:</strong> ${reserves} kg</p>
+        `;
+    }
+</script>
+
+</body>
+</html>
