@@ -2,174 +2,198 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Fuel Uplift Calibrator</title>
+    <title>CCU Fuel Dispatch</title>
     <style>
-        :root { --blue: #0c2461; --light: #dff9fb; --green: #079992; --red: #e55039; }
-        body { font-family: 'Segoe UI', sans-serif; background: #f1f2f6; padding: 20px; color: #2f3542; }
-        .container { max-width: 600px; margin: 0 auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        :root { --primary: #0a3d62; --accent: #3c6382; --bg: #dfe6e9; --card: #ffffff; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: var(--bg); margin: 0; padding: 20px; color: #2d3436; }
         
-        h1 { text-align: center; color: var(--blue); margin-bottom: 5px; text-transform: uppercase; }
-        .subtitle { text-align: center; font-size: 0.9rem; color: #7f8c8d; margin-bottom: 25px; }
+        .container { max-width: 500px; margin: 0 auto; background: var(--card); padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: var(--primary); margin: 0 0 5px 0; text-transform: uppercase; font-size: 1.5rem; }
+        .sub { text-align: center; color: #636e72; font-size: 0.85rem; margin-bottom: 25px; }
 
-        label { font-weight: bold; font-size: 0.8rem; text-transform: uppercase; color: #57606f; display: block; margin-top: 15px; }
+        /* INPUTS */
+        .input-group { display: flex; gap: 15px; margin-bottom: 15px; }
+        .input-col { flex: 1; }
+        label { font-size: 0.7rem; font-weight: 800; color: #b2bec3; text-transform: uppercase; display: block; margin-bottom: 5px; }
+        input[type="text"] { width: 100%; padding: 12px; border: 2px solid #dfe6e9; border-radius: 8px; font-size: 1.2rem; font-weight: 800; text-align: center; text-transform: uppercase; box-sizing: border-box; }
+        input:focus { border-color: var(--accent); outline: none; }
+
+        /* SLIDER SECTION */
+        .slider-container { background: #f1f2f6; padding: 20px; border-radius: 12px; margin-top: 20px; border: 1px solid #e1e1e1; }
+        .slider-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .slider-val { font-size: 1.2rem; font-weight: 800; color: var(--primary); }
         
-        .row { display: flex; gap: 10px; }
-        input, select { width: 100%; padding: 12px; border: 2px solid #dfe4ea; border-radius: 6px; font-size: 1.1rem; font-weight: bold; text-transform: uppercase; text-align: center; }
-        input:focus { border-color: var(--blue); outline: none; }
+        input[type=range] { -webkit-appearance: none; width: 100%; height: 8px; background: #d3d3d3; border-radius: 5px; outline: none; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 25px; height: 25px; border-radius: 50%; background: var(--primary); cursor: pointer; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
 
-        /* The Slider Section */
-        .slider-box { background: #dff9fb; padding: 15px; border-radius: 8px; margin-top: 20px; border: 1px solid #c7ecee; }
-        .slider-header { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 10px; }
-        input[type=range] { width: 100%; cursor: pointer; }
+        /* BUTTON */
+        button { width: 100%; padding: 18px; margin-top: 25px; background: var(--primary); color: white; border: none; border-radius: 8px; font-size: 1.1rem; font-weight: 700; cursor: pointer; transition: 0.2s; }
+        button:hover { background: #0c2461; transform: translateY(-2px); }
 
-        button { width: 100%; padding: 15px; margin-top: 20px; background: var(--blue); color: white; border: none; border-radius: 8px; font-size: 1.1rem; font-weight: bold; cursor: pointer; }
-        button:hover { background: #0a3d62; }
-
-        /* Results */
-        #result-box { display: none; margin-top: 25px; border-top: 2px dashed #ccc; padding-top: 20px; }
-        .big-stat { text-align: center; background: var(--blue); color: white; padding: 20px; border-radius: 10px; }
-        .uplift-val { font-size: 3.5rem; font-weight: 800; display: block; line-height: 1; margin-top: 5px; }
+        /* RESULT */
+        #result { display: none; margin-top: 30px; border-top: 2px dashed #b2bec3; padding-top: 20px; text-align: center; }
+        .uplift-display { font-size: 4rem; font-weight: 800; line-height: 1; color: var(--primary); }
+        .uplift-label { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; color: #636e72; }
         
-        .breakdown { margin-top: 15px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .bd-item { background: #f1f2f6; padding: 10px; border-radius: 6px; text-align: center; }
-        .bd-lbl { font-size: 0.75rem; color: #747d8c; text-transform: uppercase; }
-        .bd-val { font-size: 1.1rem; font-weight: bold; color: var(--blue); }
+        .details { display: flex; justify-content: space-between; margin-top: 20px; background: #f1f2f6; padding: 15px; border-radius: 8px; }
+        .d-item div:first-child { font-size: 0.7rem; color: #636e72; font-weight: 700; }
+        .d-item div:last-child { font-size: 1.1rem; font-weight: 800; color: #2d3436; }
 
+        /* BADGES */
+        .badge { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 0.65rem; font-weight: bold; color: white; margin-left: 5px; vertical-align: middle; }
+        .cheap { background: #00b894; }
+        .exp { background: #d63031; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>⛽ Fuel Uplift Predictor</h1>
-    <p class="subtitle">Calibrated for CCU Outbound Ops</p>
+    <h1>⛽ CCU Dispatch</h1>
+    <p class="sub">Uplift Calculator • A320/B737 Operations</p>
     
-    <div class="row">
-        <div style="flex:1">
-            <label>Origin</label>
-            <input type="text" id="origin" value="CCU" readonly style="background:#eee; color:#888;">
+    <div class="input-group">
+        <div class="input-col">
+            <label>Inbound From</label>
+            <input type="text" id="prev" placeholder="DEL" onchange="autoAdjustSlider()">
         </div>
-        <div style="flex:1">
+        <div class="input-col">
             <label>Destination</label>
-            <input type="text" id="destination" placeholder="DEL">
+            <input type="text" id="next" placeholder="BOM">
         </div>
     </div>
 
-    <label>Aircraft Type</label>
-    <select id="ac_type">
-        <option value="A320">Airbus A320</option>
-        <option value="B737">Boeing 737-800</option>
-        <option value="B777">Boeing 777-300ER</option>
-    </select>
-
-    <div class="slider-box">
-        <div class="slider-header">
-            <span>Fuel On Board (Arrival)</span>
-            <span id="fob-display" style="color:var(--blue)">3000 kg</span>
+    <div class="slider-container">
+        <div class="slider-top">
+            <label style="margin:0; color:#2d3436;">Fuel On Board (Arrival)</label>
+            <span id="fob-val" class="slider-val">3000 kg</span>
         </div>
-        <input type="range" id="fob-slider" min="0" max="10000" step="100" value="3000" oninput="updateFOB(this.value)">
-        <div style="text-align:center; font-size:0.8rem; color:#666; margin-top:5px;">Drag to match gauge indication</div>
+        <input type="range" id="fob" min="1000" max="8000" step="100" value="3000" oninput="updateLabel(this.value)">
+        <div id="slider-msg" style="font-size:0.7rem; color:#636e72; margin-top:8px; font-style:italic; text-align:right;">Manual Override</div>
     </div>
 
-    <button onclick="calculate()">Calculate Uplift</button>
+    <button onclick="calculate()">GET UPLIFT FIGURE</button>
 
-    <div id="result-box">
-        <div class="big-stat">
-            <span style="opacity:0.8; font-size:0.9rem;">REQUIRED UPLIFT</span>
-            <span id="final-uplift" class="uplift-val">0 kg</span>
-        </div>
+    <div id="result">
+        <div class="uplift-label">REQUIRED UPLIFT</div>
+        <div id="uplift" class="uplift-display">0 kg</div>
 
-        <div class="breakdown">
-            <div class="bd-item">
-                <div class="bd-lbl">Trip Distance</div>
-                <div id="dist-val" class="bd-val">0 km</div>
+        <div class="details">
+            <div class="d-item">
+                <div>BLOCK FUEL REQ</div>
+                <div id="block">0 kg</div>
             </div>
-            <div class="bd-item">
-                <div class="bd-lbl">Total Block Fuel</div>
-                <div id="block-val" class="bd-val">0 kg</div>
+            <div class="d-item">
+                <div>TRIP DIST</div>
+                <div id="dist">0 km</div>
             </div>
-        </div>
-        
-        <div style="margin-top:15px; font-size:0.8rem; text-align:center; color:#999;">
-            Block Fuel includes: Trip + Taxi (250) + Cont (5%) + Alt + 30min Reserve
+            <div class="d-item">
+                <div>TANKERING</div>
+                <div id="tanker">NO</div>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
-    // --- CALIBRATION DATA ---
-    // A320 Tuned to ~4.2 kg/km to account for heavy ATC/Climb + 2500kg fixed base
-    const aircraftData = {
-        "A320": { burn_rate: 4.2, base_fixed: 2600 }, 
-        "B737": { burn_rate: 4.1, base_fixed: 2600 },
-        "B777": { burn_rate: 9.5, base_fixed: 6000 }
-    };
-    
-    // --- LOAD DATABASE ---
+    // --- 1. CONFIGURATION ---
     const SHEET_URL = "airports.csv";
-    let airportData = [];
+    const BASE_PRICE = 90; 
+    const DEFAULT_TAX = 4;
 
+    // Aircraft: A320 (Calibrated to your feedback)
+    const AC = { 
+        burn: 4.2,     // High burn for short sectors/climb
+        base: 2800,    // Taxi + Hold + Contingency base
+        max_tank: 2500 // Extra fuel if destination is expensive
+    };
+
+    let db = [];
+
+    // --- 2. LOAD DATA ---
     window.onload = async () => {
         try {
             const res = await fetch(SHEET_URL);
             const txt = await res.text();
-            parseCSV(txt);
-        } catch (e) { alert("Error loading airports.csv. Ensure it is in the repo."); }
+            let rows = txt.split('\n');
+            for(let i=1; i<rows.length; i++) {
+                let c = rows[i].split(',');
+                if(c.length>=3) {
+                    let code = c[0].trim().replace(/"/g,"").toUpperCase();
+                    let tax = c[3] ? parseFloat(c[3]) : DEFAULT_TAX;
+                    if(code) db.push({ code, lat: parseFloat(c[1]), lon: parseFloat(c[2]), tax: isNaN(tax)?DEFAULT_TAX:tax });
+                }
+            }
+            console.log("DB Loaded: " + db.length);
+        } catch(e) { console.log("Error loading DB"); }
     };
 
-    function parseCSV(txt) {
-        const rows = txt.split('\n');
-        for (let i = 1; i < rows.length; i++) {
-            let cols = rows[i].split(',');
-            if (cols.length >= 3) {
-                let code = cols[0].trim().replace(/"/g, "").toUpperCase();
-                if(code) airportData.push({ code, lat: parseFloat(cols[1]), lon: parseFloat(cols[2]) });
+    // --- 3. SMART SLIDER LOGIC ---
+    function updateLabel(val) {
+        document.getElementById('fob-val').innerText = val + " kg";
+    }
+
+    function autoAdjustSlider() {
+        const pCode = document.getElementById('prev').value.toUpperCase();
+        const prev = db.find(a => a.code === pCode);
+        const CCU_TAX = 25; // Approximate high tax for CCU comparison
+        
+        if (prev) {
+            const slider = document.getElementById('fob');
+            const msg = document.getElementById('slider-msg');
+            
+            // If Origin Tax < CCU Tax (25%), they likely tankered in.
+            if (prev.tax < CCU_TAX) {
+                slider.value = 5500;
+                msg.innerText = `Auto-set: High Fuel (Cheap origin ${pCode})`;
+                msg.style.color = "#00b894";
+            } else {
+                slider.value = 2500;
+                msg.innerText = `Auto-set: Low Fuel (Expensive origin ${pCode})`;
+                msg.style.color = "#d63031";
             }
+            updateLabel(slider.value);
         }
     }
 
-    // --- UI HELPERS ---
-    function updateFOB(val) {
-        document.getElementById('fob-display').innerText = val + " kg";
-    }
-
-    // --- CALCULATION ---
+    // --- 4. CALCULATION ---
     function calculate() {
-        const orgCode = document.getElementById('origin').value.toUpperCase();
-        const dstCode = document.getElementById('destination').value.toUpperCase();
-        const acType = document.getElementById('ac_type').value;
-        const currentFOB = parseInt(document.getElementById('fob-slider').value);
+        const nCode = document.getElementById('next').value.toUpperCase();
+        const fob = parseInt(document.getElementById('fob').value);
+        
+        const org = db.find(a => a.code === "CCU"); // Hardcoded CCU Base
+        const dst = db.find(a => a.code === nCode);
 
-        const org = airportData.find(a => a.code === orgCode);
-        const dst = airportData.find(a => a.code === dstCode);
+        if(!org || !dst) { alert("Check Airport Codes"); return; }
 
-        if (!org || !dst) { alert("Airport code not found."); return; }
-
-        // 1. Distance Calculation
+        // Distance
         const R = 6371;
-        const dLat = (dst.lat - org.lat) * Math.PI/180;
-        const dLon = (dst.lon - org.lon) * Math.PI/180;
+        const dLat = (dst.lat - org.lat)*Math.PI/180;
+        const dLon = (dst.lon - org.lon)*Math.PI/180;
         const a = Math.sin(dLat/2)**2 + Math.cos(org.lat*Math.PI/180)*Math.cos(dst.lat*Math.PI/180) * Math.sin(dLon/2)**2;
         const dist = R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
 
-        // 2. Block Fuel Logic (Calibrated)
-        const specs = aircraftData[acType];
+        // Block Fuel
+        let block = (dist * AC.burn) + AC.base;
         
-        // Formula: (Distance * BurnRate) + Fixed Base (Taxi/Reserves)
-        // This is a linear regression approximation of complex flight planning
-        let blockFuel = (dist * specs.burn_rate) + specs.base_fixed;
-        
-        // Round to nearest 100kg
-        blockFuel = Math.ceil(blockFuel / 100) * 100;
+        // Tankering Logic (CCU vs Destination)
+        let isTankering = false;
+        if (org.tax < dst.tax) {
+            block += AC.max_tank;
+            isTankering = true;
+        }
 
-        // 3. Uplift Logic
-        let uplift = blockFuel - currentFOB;
-        if (uplift < 0) uplift = 0;
+        block = Math.ceil(block/100)*100; // Round to 100
+
+        let uplift = block - fob;
+        if(uplift < 0) uplift = 0;
 
         // Display
-        document.getElementById('result-box').style.display = "block";
-        document.getElementById('final-uplift').innerText = uplift.toLocaleString() + " kg";
-        document.getElementById('dist-val').innerText = Math.round(dist) + " km";
-        document.getElementById('block-val').innerText = blockFuel.toLocaleString() + " kg";
+        document.getElementById('result').style.display = 'block';
+        document.getElementById('uplift').innerText = uplift.toLocaleString() + " kg";
+        document.getElementById('block').innerText = block.toLocaleString();
+        document.getElementById('dist').innerText = Math.round(dist);
+        document.getElementById('tanker').innerText = isTankering ? "YES" : "NO";
+        document.getElementById('tanker').style.color = isTankering ? "#00b894" : "#2d3436";
     }
 </script>
 
