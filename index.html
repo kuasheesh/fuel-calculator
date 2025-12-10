@@ -2,28 +2,33 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>IX Dispatch | General Pattern</title>
+    <title>IX Dispatch | Flight Ops</title>
     <style>
-        :root { --brand: #d63031; --dark: #2d3436; --light: #f5f6fa; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--light); color: var(--dark); padding: 20px; }
+        :root { --brand: #d63031; --dark: #2d3436; --light: #f5f6fa; --blue: #0984e3; --green: #00b894; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--light); color: var(--dark); padding: 20px; }
         
-        .container { max-width: 500px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-top: 6px solid var(--brand); }
+        .container { max-width: 500px; margin: 0 auto; background: white; padding: 25px; border-radius: 12px; border-top: 6px solid var(--brand); box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
         h1 { margin: 0; font-size: 1.5rem; text-transform: uppercase; letter-spacing: 1px; text-align: center; }
         .sub { font-size: 0.8rem; color: #636e72; margin-bottom: 25px; text-align: center; }
 
-        /* INPUTS */
+        /* SEARCH BAR */
+        .search-box { margin-bottom: 20px; position: relative; }
+        .search-input { width: 100%; padding: 15px; border: 3px solid var(--dark); border-radius: 8px; font-size: 1.3rem; font-weight: 800; text-align: center; text-transform: uppercase; box-sizing: border-box; background: #fff; }
+        .search-input:focus { border-color: var(--brand); outline: none; }
+        .search-label { position: absolute; top: -10px; left: 15px; background: white; padding: 0 5px; font-size: 0.7rem; font-weight: 800; color: var(--dark); }
+
+        /* DETAILS GRID */
         .row { display: flex; gap: 15px; margin-bottom: 20px; }
         .col { flex: 1; }
         label { font-size: 0.7rem; font-weight: 800; color: #b2bec3; text-transform: uppercase; display: block; margin-bottom: 5px; }
-        input[type="text"] { width: 100%; padding: 15px; border: 2px solid #dfe6e9; border-radius: 8px; font-size: 1.2rem; font-weight: 800; text-align: center; text-transform: uppercase; box-sizing: border-box; }
-        input:focus { border-color: var(--brand); outline: none; background: #fff5f5; }
-
+        input[type="text"] { width: 100%; padding: 12px; border: 2px solid #dfe6e9; border-radius: 8px; font-size: 1.1rem; font-weight: 800; text-align: center; text-transform: uppercase; box-sizing: border-box; }
+        
         /* SLIDER */
         .slider-box { background: #f1f2f6; padding: 20px; border-radius: 8px; border: 1px solid #e1e1e1; }
-        .slider-head { display: flex; justify-content: space-between; font-weight: 800; font-size: 1rem; margin-bottom: 10px; }
-        input[type=range] { width: 100%; height: 6px; background: #dfe6e9; border-radius: 5px; outline: none; -webkit-appearance: none; }
-        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 24px; height: 24px; background: var(--brand); border-radius: 50%; cursor: pointer; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-        .slider-note { font-size: 0.7rem; color: #636e72; text-align: right; margin-top: 8px; font-style: italic; }
+        .slider-head { display: flex; justify-content: space-between; font-weight: 800; font-size: 1rem; margin-bottom: 10px; color: var(--dark); }
+        input[type=range] { width: 100%; height: 8px; background: #dfe6e9; border-radius: 5px; outline: none; -webkit-appearance: none; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 25px; height: 25px; background: var(--brand); border-radius: 50%; cursor: pointer; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        .slider-note { font-size: 0.75rem; color: #636e72; text-align: right; margin-top: 8px; font-style: italic; }
 
         /* BUTTON */
         button { width: 100%; padding: 18px; background: var(--dark); color: white; font-weight: 800; border: none; border-radius: 8px; margin-top: 25px; cursor: pointer; font-size: 1.1rem; transition: 0.2s; }
@@ -34,19 +39,24 @@
         .uplift-num { font-size: 4rem; font-weight: 900; line-height: 1; color: var(--brand); margin-bottom: 5px; }
         .uplift-lbl { font-size: 0.8rem; font-weight: 800; color: #b2bec3; letter-spacing: 2px; text-transform: uppercase; }
 
-        .stats { display: flex; justify-content: space-between; margin-top: 20px; background: #f1f2f6; padding: 15px; border-radius: 8px; }
-        .stat-item { text-align: center; }
-        .stat-val { display: block; font-weight: 800; font-size: 1.1rem; color: var(--dark); }
-        .stat-lbl { font-size: 0.65rem; font-weight: 700; color: #636e72; text-transform: uppercase; }
+        .details { margin-top: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .d-box { background: #f5f6fa; padding: 12px; border-radius: 8px; border: 1px solid #e6e6e6; }
+        .d-val { font-size: 1.2rem; font-weight: 800; color: var(--dark); }
+        .d-lbl { font-size: 0.65rem; font-weight: 700; color: #636e72; text-transform: uppercase; }
 
-        .badge { display: inline-block; padding: 4px 10px; background: #ffeaa7; color: #d35400; font-size: 0.7rem; font-weight: 800; border-radius: 4px; margin-top: 10px; }
+        .cap-badge { display: inline-block; padding: 5px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 800; color: white; margin-bottom: 15px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>⛽ IX Fuel Pattern</h1>
-    <p class="sub">General Logic: Trip Fuel + 4,000 kg Reserve</p>
+    <h1>⛽ IX Ops Center</h1>
+    <p class="sub">Intelligent Flight Lookup & Fuel Targeting</p>
+
+    <div class="search-box">
+        <span class="search-label">ENTER FLIGHT NO</span>
+        <input type="text" id="flightNo" class="search-input" placeholder="IX 1514" onkeyup="lookupFlight()">
+    </div>
 
     <div class="row">
         <div class="col">
@@ -55,7 +65,7 @@
         </div>
         <div class="col">
             <label>Destination</label>
-            <input type="text" id="next" placeholder="BOM">
+            <input type="text" id="next" placeholder="GAU">
         </div>
     </div>
 
@@ -73,20 +83,24 @@
     <div id="res">
         <div class="uplift-lbl">REQUIRED UPLIFT</div>
         <div id="uplift" class="uplift-num">0 kg</div>
-        <div id="logic-badge" class="badge">STANDARD PATTERN</div>
+        <div id="cap-msg" class="cap-badge" style="background:#b2bec3;">Standard Profile</div>
 
-        <div class="stats">
-            <div class="stat-item">
-                <span id="block" class="stat-val">0 kg</span>
-                <span class="stat-lbl">Target Block</span>
+        <div class="details">
+            <div class="d-box">
+                <div class="d-lbl">Target Block Fuel</div>
+                <div id="block" class="d-val">0 kg</div>
             </div>
-            <div class="stat-item">
-                <span id="trip" class="stat-val">0 kg</span>
-                <span class="stat-lbl">Est. Trip Fuel</span>
+            <div class="d-box">
+                <div class="d-lbl">Profile Logic</div>
+                <div id="logic" class="d-val">-</div>
             </div>
-            <div class="stat-item">
-                <span id="stack" class="stat-val">0 kg</span>
-                <span class="stat-lbl">Safety Reserve</span>
+            <div class="d-box">
+                <div class="d-lbl">Est. Trip Fuel</div>
+                <div id="trip" class="d-val">0 kg</div>
+            </div>
+            <div class="d-box">
+                <div class="d-lbl">Safety Reserve</div>
+                <div id="stack" class="d-val">0 kg</div>
             </div>
         </div>
     </div>
@@ -95,15 +109,38 @@
 <script>
     // --- 1. CONFIGURATION ---
     const SHEET_URL = "airports.csv";
-    
-    // THE GENERAL CONSTANTS
-    const AC_BURN = 4.1;      // Avg Burn Rate (kg/km)
-    const GENERAL_RESERVE = 4000; // The magic number (Trip + 4000)
-    const MIN_FLOOR = 6000;   // Never depart with less than this (Short hops)
-    
-    // Note: Island operations (Port Blair) usually require significantly more 
-    // due to isolation, but this formula will handle mainland India generally.
+    const AC_BURN = 4.1; 
 
+    // --- 2. FLIGHT DATABASE (INTELLIGENT LOOKUP) ---
+    // Based on provided sheets and uplift data patterns
+    const FLIGHT_DB = {
+        // PORT BLAIR (High Res)
+        "1511": { dest: "IXZ", target: 10500, logic: "ISLAND OPS" },
+        "2782": { dest: "IXZ", target: 10500, logic: "ISLAND OPS" },
+        "2784": { dest: "IXZ", target: 10500, logic: "ISLAND OPS" },
+        "2641": { dest: "IXZ", target: 10500, logic: "ISLAND OPS" }, // Inferred from 8T uplift
+
+        // BANGALORE (Long Haul + 4T)
+        "2985": { dest: "BLR", target: 10500, logic: "BLR METRO" },
+
+        // BOMBAY (Long Haul + 4T)
+        "1254": { dest: "BOM", target: 10200, logic: "BOM METRO" },
+
+        // GUWAHATI (Tankering vs Standard)
+        "1514": { dest: "GAU", target: 7500, logic: "HEAVY TANKER" }, // Sheet says 7500
+        "1519": { dest: "GAU", target: 6100, logic: "SHORT HOP MIN" }, // Sheet says 6100
+        
+        // AGARTALA / BAGDOGRA (Floors)
+        "1521": { dest: "IXA", target: 5500, logic: "IXA FLOOR" },
+        "1256": { dest: "IXB", target: 6000, logic: "IXB FLOOR" }
+    };
+
+    // --- SECTOR DEFAULTS (Fallback) ---
+    const SECTOR_CAPS = {
+        "DEL": 8200, "BOM": 10200, "IXZ": 10500, 
+        "BLR": 10500, "GAU": 6000, "IXB": 6000, "IXA": 5500
+    };
+    
     let db = [];
 
     window.onload = async () => {
@@ -121,9 +158,28 @@
         } catch(e) {}
     };
 
-    // --- 2. LOGIC ---
+    // --- 3. LOGIC ---
     function updateLabel(val) {
         document.getElementById('fob-val').innerText = val + " kg";
+    }
+
+    // Auto-Lookup Flight No
+    function lookupFlight() {
+        let input = document.getElementById('flightNo').value.toUpperCase().replace("IX", "").trim();
+        let destField = document.getElementById('next');
+        
+        if(FLIGHT_DB[input]) {
+            let data = FLIGHT_DB[input];
+            destField.value = data.dest;
+            destField.style.backgroundColor = "#e1ffef"; // Highlight success
+            // Store target for calculation
+            destField.dataset.forcedTarget = data.target;
+            destField.dataset.forcedLogic = data.logic;
+        } else {
+            destField.style.backgroundColor = "white";
+            delete destField.dataset.forcedTarget;
+            delete destField.dataset.forcedLogic;
+        }
     }
 
     function adjustSlider() {
@@ -131,78 +187,78 @@
         const s = document.getElementById('fob');
         const n = document.getElementById('slider-note');
         
-        // Simple heuristic for slider auto-position
-        // If coming from far (DEL/BOM), arrival fuel likely low (~3000)
-        // If coming from near (IXB/GAU), arrival fuel likely high (~5000)
-        
-        // We calculate distance from CCU roughly to guess
-        const prevData = db.find(a => a.code === p);
-        const ccuData = db.find(a => a.code === "CCU");
-        
-        if (prevData && ccuData) {
-            // Rough distance check
-            const d = Math.abs(prevData.lat - ccuData.lat); 
-            if (d < 5) { // Close (Short hop)
-                s.value = 5500;
-                n.innerText = "Auto: Short Hop Inbound (High FOB)";
-            } else { // Far (Long hop)
-                s.value = 2800;
-                n.innerText = "Auto: Long Hop Inbound (Low FOB)";
-            }
-            updateLabel(s.value);
+        if(["GAU","IXB","IXA","JAI"].includes(p)) {
+            s.value = 5500;
+            n.innerText = "Auto: Tankered Arrival (High)";
+        } else {
+            s.value = 2800;
+            n.innerText = "Auto: Standard Arrival (Low)";
         }
+        updateLabel(s.value);
     }
 
     function calculate() {
         const next = document.getElementById('next').value.toUpperCase();
         const fob = parseInt(document.getElementById('fob').value);
+        const forcedTarget = document.getElementById('next').dataset.forcedTarget;
+        const forcedLogic = document.getElementById('next').dataset.forcedLogic;
         
         const org = db.find(a => a.code === "CCU"); 
         const dst = db.find(a => a.code === next);
 
         if(!org || !dst) { alert("Airport not found"); return; }
 
-        // 1. Calculate Distance
+        // Calc Distance & Trip
         const R = 6371;
         const dLat = (dst.lat - org.lat)*Math.PI/180;
         const dLon = (dst.lon - org.lon)*Math.PI/180;
         const a = Math.sin(dLat/2)**2 + Math.cos(org.lat*Math.PI/180)*Math.cos(dst.lat*Math.PI/180) * Math.sin(dLon/2)**2;
         const dist = R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
         
-        // 2. Estimate Trip Fuel
         let trip = Math.round(dist * AC_BURN);
         
-        // 3. APPLY GENERAL PATTERN (Trip + 4000)
-        let targetBlock = trip + GENERAL_RESERVE;
-        let logicName = "TRIP + 4000 KG";
+        // --- TARGET LOGIC ---
+        let targetBlock = 0;
+        let logicName = "";
+        let badgeColor = "#b2bec3"; 
 
-        // 4. APPLY FLOOR (For short sectors like IXB/GAU)
-        if (targetBlock < MIN_FLOOR) {
-            targetBlock = MIN_FLOOR;
-            logicName = "MIN FLOOR (6T)";
+        if (forcedTarget) {
+            // Priority 1: Flight Specific DB
+            targetBlock = parseInt(forcedTarget);
+            logicName = forcedLogic;
+            badgeColor = "#00b894"; // Green for verified flight
         }
-        
-        // 5. EXCEPTION: Port Blair (Island Rule)
-        // Even in a general tool, Islands obey physics/regs, not patterns.
-        // IXZ usually requires ~6000kg reserve instead of 4000kg.
-        if (next === "IXZ") {
-            targetBlock = trip + 6200; // ~10,500 total
-            logicName = "ISLAND RESERVE";
+        else if (SECTOR_CAPS[next]) {
+            // Priority 2: Sector Caps
+            targetBlock = SECTOR_CAPS[next];
+            logicName = "SECTOR PROFILE";
+            badgeColor = "#0984e3"; // Blue
+        } 
+        else if (trip < 2500) {
+            targetBlock = 6000;
+            logicName = "MIN FLOOR (6T)";
+        } 
+        else {
+            targetBlock = trip + 4100;
+            logicName = "STANDARD +4T";
         }
 
         let uplift = targetBlock - fob;
         if(uplift < 0) uplift = 0;
-        
         let stack = targetBlock - trip;
 
         // Display
         document.getElementById('res').style.display = "block";
         document.getElementById('uplift').innerText = uplift.toLocaleString() + " kg";
-        document.getElementById('logic-badge').innerText = logicName;
         
         document.getElementById('block').innerText = targetBlock.toLocaleString() + " kg";
         document.getElementById('trip').innerText = trip.toLocaleString() + " kg";
         document.getElementById('stack').innerText = "+" + stack.toLocaleString() + " kg";
+        document.getElementById('logic').innerText = logicName;
+        
+        const badge = document.getElementById('cap-msg');
+        badge.innerText = `TARGET: ${targetBlock} kg`;
+        badge.style.background = badgeColor;
     }
 </script>
 
