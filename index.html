@@ -91,8 +91,8 @@
 <script>
     // --- CONFIGURATION ---
     const SHEET_URL = "airports.csv"; 
-    const BASE_PRICE = 90; // Rs 90 per kg
-    const DEFAULT_TAX = 4; // 4% if blank
+    const BASE_PRICE = 90; 
+    const DEFAULT_TAX = 4; 
 
     // Aircraft Specs
     const aircraftData = {
@@ -103,14 +103,41 @@
 
     let airportData = [];
 
-    // --- LOAD DATA ---
+    // --- LOAD DATA & DEBUG ---
     window.onload = async () => {
+        const errorDiv = document.getElementById('error-msg');
+        
         try {
             const res = await fetch(SHEET_URL);
-            if(!res.ok) throw new Error("CSV not found");
+            
+            // Check if file exists
+            if (!res.ok) {
+                throw new Error(`Could not find 'airports.csv' (Status: ${res.status}). Make sure it is in the GitHub Repo.`);
+            }
+
             const txt = await res.text();
+            
+            // Check if we got an HTML error page instead of CSV
+            if(txt.trim().startsWith("<!DOCTYPE")) {
+                throw new Error("File loaded is HTML, not CSV. Check file path.");
+            }
+
             parseCSV(txt);
-        } catch (e) { document.getElementById('error-msg').innerText = "❌ Error: Upload airports.csv to GitHub"; }
+
+            // SUCCESS FEEDBACK
+            if (airportData.length > 0) {
+                // Show user what we found
+                const firstFew = airportData.slice(0, 3).map(a => a.code).join(", ");
+                errorDiv.style.color = "green";
+                errorDiv.innerText = `✅ Database Loaded: ${airportData.length} airports found. (Examples: ${firstFew})`;
+            } else {
+                throw new Error("File found, but 0 airports were read. Check CSV formatting.");
+            }
+
+        } catch (e) { 
+            errorDiv.style.color = "red";
+            errorDiv.innerText = "❌ STARTUP ERROR: " + e.message; 
+        }
     };
 
     function parseCSV(csvText) {
@@ -118,16 +145,18 @@
         for (let i = 1; i < rows.length; i++) {
             let cols = rows[i].split(',');
             if (cols.length >= 3) {
-                // Parse Tax (Column 3). If empty/undefined, use Default.
+                let code = cols[0].trim().replace(/"/g, "").toUpperCase(); // Force Uppercase
                 let taxVal = cols[3] ? parseFloat(cols[3]) : NaN;
                 if (isNaN(taxVal)) taxVal = DEFAULT_TAX;
 
-                airportData.push({
-                    code: cols[0].trim().replace(/"/g, ""),
-                    lat: parseFloat(cols[1]),
-                    lon: parseFloat(cols[2]),
-                    tax: taxVal
-                });
+                if (code.length > 0) {
+                    airportData.push({
+                        code: code,
+                        lat: parseFloat(cols[1]),
+                        lon: parseFloat(cols[2]),
+                        tax: taxVal
+                    });
+                }
             }
         }
     }
@@ -136,71 +165,71 @@
     function calculate() {
         const orgCode = document.getElementById('origin').value.toUpperCase().trim();
         const dstCode = document.getElementById('destination').value.toUpperCase().trim();
-        const ac = aircraftData[document.getElementById('ac_type').value];
         const errorDiv = document.getElementById('error-msg');
-        const resBox = document.getElementById('result');
+        
+        // Reset Error Color
+        errorDiv.style.color = "red";
 
-        // Reset UI
-        errorDiv.innerText = "";
-        resBox.style.display = "none";
-
-        // Find Airports
-        const org = airportData.find(a => a.code === orgCode);
-        const dst = airportData.find(a => a.code === dstCode);
-
-        if (!org || !dst) {
-            errorDiv.innerText = "⚠️ Airport code not found in database.";
+        // 1. CHECK IF DB IS READY
+        if (airportData.length === 0) {
+            errorDiv.innerText = "⚠️ Database is empty. Wait for '✅ Database Loaded' message.";
             return;
         }
 
-        // 1. Calculate Prices (Base + Tax)
+        // 2. FIND AIRPORTS
+        const org = airportData.find(a => a.code === orgCode);
+        const dst = airportData.find(a => a.code === dstCode);
+
+        if (!org) {
+            errorDiv.innerText = `❌ Error: Origin '${orgCode}' not found in database.`;
+            return;
+        }
+        if (!dst) {
+            errorDiv.innerText = `❌ Error: Destination '${dstCode}' not found in database.`;
+            return;
+        }
+
+        // ... REST OF CALCULATION (Same as before) ...
+        const ac = aircraftData[document.getElementById('ac_type').value];
+        const resBox = document.getElementById('result');
+        errorDiv.innerText = ""; // Clear errors
+
         const orgFinalPrice = BASE_PRICE + (BASE_PRICE * (org.tax / 100));
         const dstFinalPrice = BASE_PRICE + (BASE_PRICE * (dst.tax / 100));
 
-        // 2. Calculate Distance (Haversine)
         const R = 6371; 
         const dLat = (dst.lat - org.lat) * Math.PI/180;
         const dLon = (dst.lon - org.lon) * Math.PI/180;
         const a = Math.sin(dLat/2)**2 + Math.cos(org.lat*Math.PI/180)*Math.cos(dst.lat*Math.PI/180) * Math.sin(dLon/2)**2;
         const dist = R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
 
-        // 3. Fuel Requirements
         const tripFuel = Math.round(dist * ac.burn);
-        const reserves = 2500; // Fixed reserves
+        const reserves = 2500;
         let tankerFuel = 0;
         let strategy = "";
         let strategyStyle = "";
 
-        // 4. STRATEGY LOGIC
-        // If Origin is cheaper than Destination, carry extra fuel
         if (orgFinalPrice < dstFinalPrice) {
-            tankerFuel = ac.tankerLimit; // Load extra to save money later
-            strategy = "TANKERING RECOMMENDED";
+            tankerFuel = ac.tankerLimit;
+            strategy = "TANKERING ADVISED";
             strategyStyle = "tanker-yes";
         } else {
-            tankerFuel = 0; // Fuel is expensive here, take minimum
-            strategy = "MINIMUM FUEL (Expensive Origin)";
+            tankerFuel = 0;
+            strategy = "MINIMUM FUEL";
             strategyStyle = "tanker-no";
         }
 
         const totalUplift = tripFuel + reserves + tankerFuel;
         const totalCost = totalUplift * orgFinalPrice;
 
-        // 5. Display Results
         resBox.style.display = "block";
         document.getElementById('strategy-badge').innerText = strategy;
         document.getElementById('strategy-badge').className = strategyStyle;
-
         document.getElementById('final-uplift').innerText = totalUplift.toLocaleString() + " kg";
-        
         document.getElementById('org-price').innerText = "₹" + orgFinalPrice.toFixed(2);
         document.getElementById('dst-price').innerText = "₹" + dstFinalPrice.toFixed(2);
-
         document.getElementById('trip-fuel').innerText = tripFuel.toLocaleString();
         document.getElementById('tanker-fuel').innerText = tankerFuel.toLocaleString();
         document.getElementById('total-cost').innerText = "₹" + Math.round(totalCost).toLocaleString();
     }
 </script>
-
-</body>
-</html>
