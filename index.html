@@ -2,58 +2,63 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>dispatch.io | India Safety Ops</title>
+    <title>dispatch.io | Real World Ops</title>
     <style>
-        :root { --primary: #2c3e50; --accent: #3498db; --bg: #ecf0f1; --safe: #27ae60; --warn: #e67e22; --danger: #c0392b; }
-        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg); margin: 0; padding: 20px; color: #2c3e50; }
+        :root { --primary: #002b55; --accent: #00a8e8; --bg: #f4f7f6; --safe: #00b894; --warn: #fdcb6e; --danger: #d63031; }
+        body { font-family: 'Segoe UI', Roboto, sans-serif; background-color: var(--bg); margin: 0; padding: 20px; color: #2d3436; }
         
-        .container { max-width: 850px; margin: 0 auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-        h1 { text-align: center; margin-bottom: 5px; color: var(--primary); }
-        .sub { text-align: center; color: #7f8c8d; font-size: 0.9rem; margin-bottom: 25px; }
+        .container { max-width: 900px; margin: 0 auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.08); }
+        h1 { text-align: center; margin-bottom: 5px; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; }
+        .sub { text-align: center; color: #636e72; font-size: 0.9rem; margin-bottom: 30px; }
 
         /* Flow Diagram */
-        .flow { display: flex; align-items: flex-end; gap: 10px; margin-bottom: 20px; }
+        .flow { display: flex; align-items: flex-end; gap: 15px; margin-bottom: 30px; }
         .box { flex: 1; }
-        .box label { font-size: 0.7rem; font-weight: bold; text-transform: uppercase; color: #95a5a6; display: block; margin-bottom: 5px;}
-        .box input { width: 100%; padding: 12px; text-align: center; font-size: 1.1rem; font-weight: 800; border: 2px solid #bdc3c7; border-radius: 6px; text-transform: uppercase; box-sizing: border-box;}
-        .box input:focus { border-color: var(--accent); outline: none; }
-        .arrow { padding-bottom: 15px; color: #bdc3c7; font-size: 1.2rem; }
+        .box label { font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: #b2bec3; display: block; margin-bottom: 8px;}
+        .box input { width: 100%; padding: 15px; text-align: center; font-size: 1.2rem; font-weight: 800; border: 2px solid #dfe6e9; border-radius: 8px; text-transform: uppercase; box-sizing: border-box; color: #2d3436;}
+        .box input:focus { border-color: var(--accent); outline: none; background: #f0faff; }
+        .arrow { padding-bottom: 20px; color: #dfe6e9; font-size: 1.5rem; }
         
-        #curr_stn { border-color: var(--accent); background: #ebf5fb; color: var(--accent); }
+        #curr_stn { border-color: var(--primary); background: #eef5fb; color: var(--primary); }
 
-        button { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 6px; font-weight: bold; cursor: not-allowed; margin-top: 15px; }
-        button.active { cursor: pointer; background: var(--safe); }
-        button.active:hover { background: #219150; }
+        button { width: 100%; padding: 18px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: 700; font-size: 1rem; cursor: not-allowed; transition: 0.2s; }
+        button.active { cursor: pointer; background: var(--safe); box-shadow: 0 4px 15px rgba(0,184,148,0.3); }
+        button.active:hover { transform: translateY(-2px); }
 
-        /* Results */
-        #result-panel { display: none; margin-top: 30px; border-top: 2px dashed #bdc3c7; padding-top: 20px; }
+        /* Results Panel */
+        #result-panel { display: none; margin-top: 40px; }
         
-        .main-stat { text-align: center; background: var(--primary); color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
-        .uplift-num { font-size: 3rem; font-weight: 800; line-height: 1; display: block; margin: 10px 0; }
-        
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .card { background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #e0e0e0; }
-        .card-title { font-size: 0.8rem; font-weight: bold; text-transform: uppercase; border-bottom: 2px solid #ddd; padding-bottom: 5px; margin-bottom: 10px; color: #7f8c8d; }
+        .hero-section { display: flex; align-items: center; justify-content: space-between; background: var(--primary); color: white; padding: 25px; border-radius: 12px; margin-bottom: 20px; }
+        .hero-label { font-size: 0.9rem; opacity: 0.8; text-transform: uppercase; }
+        .hero-val { font-size: 3.5rem; font-weight: 800; line-height: 1; }
+        .strategy-pill { background: rgba(255,255,255,0.15); padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; margin-top: 10px; display: inline-block; }
 
-        .row { display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 8px; }
-        .val { font-weight: bold; }
+        .grid { display: grid; grid-template-columns: 1fr 1.2fr; gap: 25px; }
+        .card { background: #fff; padding: 20px; border-radius: 12px; border: 1px solid #dfe6e9; box-shadow: 0 4px 10px rgba(0,0,0,0.03); }
+        .card-header { font-size: 0.8rem; font-weight: 800; text-transform: uppercase; border-bottom: 2px solid #f1f2f6; padding-bottom: 10px; margin-bottom: 15px; color: #b2bec3; letter-spacing: 0.5px; }
+
+        .data-row { display: flex; justify-content: space-between; font-size: 0.95rem; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dashed #f1f2f6; }
+        .data-row:last-child { border: none; }
+        .lbl { color: #636e72; }
+        .val { font-weight: 700; color: #2d3436; }
+
+        /* Safety Stack Specifics */
+        .stack-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; font-size: 0.9rem; }
+        .stack-name { display: flex; align-items: center; gap: 8px; }
+        .dot { width: 8px; height: 8px; border-radius: 50%; background: #dfe6e9; }
+        .stack-val { font-weight: 700; font-family: 'Consolas', monospace; }
         
-        /* The Safety Stack Visuals */
-        .safety-stack { border-left: 3px solid var(--accent); padding-left: 10px; margin-top: 10px; }
-        .stack-item { display: flex; justify-content: space-between; font-size: 0.85rem; color: #555; margin-bottom: 4px; }
-        .stack-item.total { border-top: 1px solid #ccc; padding-top: 5px; font-weight: bold; color: #000; }
+        .highlight-row { background: #f0faff; padding: 10px; border-radius: 6px; margin-top: 5px; font-weight: bold; color: var(--primary); }
         
-        .alt-badge { background: #e17055; color: white; font-size: 0.7rem; padding: 2px 5px; border-radius: 4px; margin-left: 5px;}
-        .tanker-badge { background: var(--safe); color: white; font-size: 0.75rem; padding: 3px 8px; border-radius: 10px; display: inline-block; margin-top: 5px;}
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>⛽ Dispatch.io | India Ops</h1>
-    <p class="sub">Includes DGCA Contingency (5%) & Auto-Alternate Selection</p>
+    <h1>✈️ Dispatch.io | Pro</h1>
+    <p class="sub">Realistic Fuel Planning for A320/B737 Ops</p>
     
-    <div id="status" style="text-align:center; font-size:0.8rem; margin-bottom:10px;">⏳ Loading Database...</div>
+    <div id="status" style="text-align:center; font-size:0.8rem; color:#b2bec3; margin-bottom:15px;">⏳ Initializing Nav Database...</div>
 
     <div class="flow">
         <div class="box">
@@ -72,59 +77,77 @@
         </div>
     </div>
 
-    <label style="font-size:0.8rem; font-weight:bold;">Aircraft Type</label>
-    <select id="ac_type" style="width:100%; padding:10px; margin-top:5px;">
-        <option value="A320">Airbus A320 (Narrowbody)</option>
-        <option value="B737">Boeing 737-800 (Narrowbody)</option>
-        <option value="B777">Boeing 777-300ER (Widebody)</option>
+    <label style="font-size:0.8rem; font-weight:bold; color:#636e72;">AIRCRAFT CONFIGURATION</label>
+    <select id="ac_type" style="width:100%; padding:12px; margin-top:8px; border: 2px solid #dfe6e9; border-radius: 6px; font-weight: 600;">
+        <option value="A320">Airbus A320 (Domestic Config)</option>
+        <option value="B737">Boeing 737-800 (Domestic Config)</option>
+        <option value="B777">Boeing 777-300ER (Long Haul)</option>
     </select>
 
-    <button id="calc-btn" onclick="calculate()" disabled>Waiting for Data...</button>
+    <button id="calc-btn" onclick="calculate()" disabled>Waiting for Database...</button>
 
     <div id="result-panel">
-        <div class="main-stat">
-            <span style="opacity:0.8; font-size:0.9rem;">TOTAL UPLIFT REQUIRED AT <span id="disp-curr">CCU</span></span>
-            <span id="final-uplift" class="uplift-num">0 kg</span>
-            <div id="strategy-msg" style="font-size:0.9rem; background:rgba(255,255,255,0.2); padding:5px 10px; border-radius:20px; display:inline-block;">Strategy Loading...</div>
+        <div class="hero-section">
+            <div>
+                <div class="hero-label">Total Fuel Required (FOB)</div>
+                <div id="strategy-pill" class="strategy-pill">Analyzing Strategy...</div>
+            </div>
+            <div id="final-uplift" class="hero-val">0 kg</div>
         </div>
 
         <div class="grid">
             <div class="card">
-                <div class="card-title">1. Arrival State (Inbound)</div>
-                <div class="row"><span>Fuel Remaining:</span> <span id="arr-fuel" class="val">0 kg</span></div>
-                <div class="row"><span>Previous Price:</span> <span id="prev-price" class="val">-</span></div>
-                <p id="arr-reason" style="font-size:0.8rem; color:#666; font-style:italic;">...</p>
+                <div class="card-header">1. Inbound Status</div>
+                <div class="data-row">
+                    <span class="lbl">Inbound From:</span>
+                    <span id="lbl-prev" class="val">XXX</span>
+                </div>
+                <div class="data-row">
+                    <span class="lbl">Price @ Origin:</span>
+                    <span id="price-prev" class="val">-</span>
+                </div>
+                <div class="data-row">
+                    <span class="lbl">Est. Arrival Fuel:</span>
+                    <span id="arr-fuel" class="val">0 kg</span>
+                </div>
+                <p id="arr-msg" style="font-size:0.8rem; color:#b2bec3; margin-top:15px; font-style:italic; line-height:1.4;">...</p>
             </div>
 
             <div class="card">
-                <div class="card-title">2. Departure Plan (Safety Stack)</div>
+                <div class="card-header">2. Departure Build-up</div>
                 
-                <div class="safety-stack">
-                    <div class="stack-item">
-                        <span>Trip Fuel <small>(to <span id="disp-next"></span>)</small></span>
-                        <span id="stack-trip">0</span>
-                    </div>
-                    <div class="stack-item">
-                        <span>Contingency <small>(5%)</small></span>
-                        <span id="stack-cont">0</span>
-                    </div>
-                    <div class="stack-item">
-                        <span>Alternate <span id="alt-name" class="alt-badge">FINDING...</span></span>
-                        <span id="stack-alt">0</span>
-                    </div>
-                    <div class="stack-item">
-                        <span>Final Reserve <small>(30min)</small></span>
-                        <span id="stack-hold">0</span>
-                    </div>
-                    <div class="stack-item total" style="color:#c0392b;">
-                        <span>MINIMUM REQUIRED:</span>
-                        <span id="stack-min">0</span>
-                    </div>
+                <div class="stack-row">
+                    <div class="stack-name"><div class="dot" style="background:#0984e3"></div>Trip Fuel</div>
+                    <div id="s-trip" class="stack-val">0</div>
+                </div>
+                <div class="stack-row">
+                    <div class="stack-name"><div class="dot" style="background:#00cec9"></div>Taxi Fuel</div>
+                    <div id="s-taxi" class="stack-val">0</div>
+                </div>
+                <div class="stack-row">
+                    <div class="stack-name"><div class="dot" style="background:#fdcb6e"></div>Contingency (5%)</div>
+                    <div id="s-cont" class="stack-val">0</div>
+                </div>
+                 <div class="stack-row">
+                    <div class="stack-name"><div class="dot" style="background:#e17055"></div>Alternate (<span id="alt-code">...</span>)</div>
+                    <div id="s-alt" class="stack-val">0</div>
+                </div>
+                 <div class="stack-row">
+                    <div class="stack-name"><div class="dot" style="background:#d63031"></div>Final Reserve</div>
+                    <div id="s-res" class="stack-val">0</div>
+                </div>
+                <div class="stack-row">
+                    <div class="stack-name"><div class="dot" style="background:#6c5ce7"></div>Cmdr. Extra</div>
+                    <div id="s-extra" class="stack-val">0</div>
                 </div>
 
-                <div style="margin-top:15px; border-top:1px dashed #ccc; padding-top:10px;">
-                    <div class="row"><span>+ Tankering Add:</span> <span id="tanker-add" class="val" style="color:green;">0 kg</span></div>
-                    <div class="row" style="font-size:1rem; color:#2c3e50;"><span>Target Block Fuel:</span> <span id="block-fuel" class="val">0 kg</span></div>
+                <div class="highlight-row stack-row">
+                    <div class="stack-name">MIN BLOCK FUEL</div>
+                    <div id="s-total" class="stack-val">0 kg</div>
+                </div>
+
+                <div style="margin-top:15px; font-size:0.85rem; color:#636e72; border-top:1px solid #f1f2f6; padding-top:10px;">
+                    Tankering Add: <strong id="tanker-add" style="color:var(--safe)">0 kg</strong>
                 </div>
             </div>
         </div>
@@ -132,20 +155,39 @@
 </div>
 
 <script>
-    // --- CONFIGURATION ---
+    // --- 1. CONFIG & TUNED CONSTANTS ---
     const SHEET_URL = "airports.csv"; 
     const BASE_PRICE = 90; 
     const DEFAULT_TAX = 4;
 
+    // TUNED FOR REALISM (Higher Burn for Climb/Drag + Ground Ops)
     const acSpecs = {
-        "A320": { burn: 2.8, hold: 1200, max_tanker: 3000 }, // Hold = 30 mins
-        "B737": { burn: 2.6, hold: 1100, max_tanker: 3000 },
-        "B777": { burn: 7.5, hold: 3500, max_tanker: 12000 }
+        "A320": { 
+            burn: 3.6,        // Increased from 2.8 to account for climb/payload
+            taxi: 250,        // Standard Taxi
+            hold: 1500,       // Final Reserve (30 min @ 1500ft)
+            extra: 500,       // Captain's Discretion
+            max_tanker: 3000 
+        },
+        "B737": { 
+            burn: 3.4, 
+            taxi: 250, 
+            hold: 1400, 
+            extra: 500,
+            max_tanker: 3000 
+        },
+        "B777": { 
+            burn: 8.0, 
+            taxi: 600, 
+            hold: 4000, 
+            extra: 1000,
+            max_tanker: 15000 
+        }
     };
 
     let airportData = [];
 
-    // --- SETUP ---
+    // --- 2. LOADER ---
     window.onload = async () => {
         const msg = document.getElementById('status');
         const btn = document.getElementById('calc-btn');
@@ -153,18 +195,17 @@
             const res = await fetch(SHEET_URL);
             if(!res.ok) throw new Error("CSV not found");
             const txt = await res.text();
-            if(txt.trim().startsWith("<")) throw new Error("Not a CSV file");
+            if(txt.startsWith("<")) throw new Error("Not a CSV");
             
             parseCSV(txt);
             
             if(airportData.length > 0){
-                msg.innerText = `✅ Database Ready (${airportData.length} airports)`;
-                msg.style.color = "green";
+                msg.innerHTML = `<span style="color:green">✅ Database Online (${airportData.length} airports)</span>`;
                 btn.disabled = false;
                 btn.className = "active";
-                btn.innerText = "CALCULATE SAFE UPLIFT";
+                btn.innerText = "CALCULATE REAL FUEL";
             }
-        } catch(e) { msg.innerText = "❌ Error: " + e.message; msg.style.color = "red"; }
+        } catch(e) { msg.innerText = "Error: " + e.message; msg.style.color = "red"; }
     };
 
     function parseCSV(txt) {
@@ -180,7 +221,7 @@
         }
     }
 
-    // --- LOGIC ---
+    // --- 3. MATH UTILS ---
     function getDist(p1, p2) {
         const R = 6371;
         const dLat = (p2.lat - p1.lat) * Math.PI/180;
@@ -189,119 +230,119 @@
         return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
     }
 
-    // THE GENIUS FUNCTION: Find nearest airport that isn't the destination itself
     function findAlternate(destNode) {
         let nearest = null;
         let minDist = Infinity;
-
         airportData.forEach(stn => {
-            if (stn.code !== destNode.code) { // Can't be the same airport
+            if (stn.code !== destNode.code) {
                 let d = getDist(destNode, stn);
-                if (d < minDist) {
-                    minDist = d;
-                    nearest = stn;
-                }
+                if (d < minDist) { minDist = d; nearest = stn; }
             }
         });
         return { stn: nearest, dist: minDist };
     }
 
+    // --- 4. CORE CALCULATION ---
     function calculate() {
-        const prevCode = document.getElementById('prev_stn').value.toUpperCase().trim();
-        const currCode = document.getElementById('curr_stn').value.toUpperCase().trim();
-        const nextCode = document.getElementById('next_stn').value.toUpperCase().trim();
+        const pCode = document.getElementById('prev_stn').value.toUpperCase().trim();
+        const cCode = document.getElementById('curr_stn').value.toUpperCase().trim();
+        const nCode = document.getElementById('next_stn').value.toUpperCase().trim();
         const ac = acSpecs[document.getElementById('ac_type').value];
 
-        const prev = airportData.find(a => a.code === prevCode);
-        const curr = airportData.find(a => a.code === currCode);
-        const next = airportData.find(a => a.code === nextCode);
+        const prev = airportData.find(a => a.code === pCode);
+        const curr = airportData.find(a => a.code === cCode);
+        const next = airportData.find(a => a.code === nCode);
 
-        if (!prev || !curr || !next) { alert("Airport code not found."); return; }
+        if (!prev || !curr || !next) { alert("Airport not found."); return; }
 
         // Prices
         const pPrev = BASE_PRICE + (BASE_PRICE * prev.tax / 100);
         const pCurr = BASE_PRICE + (BASE_PRICE * curr.tax / 100);
         const pNext = BASE_PRICE + (BASE_PRICE * next.tax / 100);
 
-        // --- 1. ARRIVAL LOGIC ---
-        // Did we tanker IN?
+        // --- INBOUND LOGIC (Arrival) ---
         let arrFuel = 0;
         let arrMsg = "";
+        
+        // If we came from a cheap place, assume we brought extra. 
+        // If expensive, assume we landed with Reserves + Extra only.
         if (pPrev < pCurr) {
-            arrFuel = ac.hold + ac.max_tanker; // Reserves + Tankering
-            arrMsg = `Inbound from cheap station (${prevCode}). Assumed Heavy Arrival.`;
+            arrFuel = ac.hold + ac.extra + ac.max_tanker; 
+            arrMsg = `Tankered in from ${pCode} (Cheap). Heavy Arrival.`;
         } else {
-            arrFuel = ac.hold; // Minimum Reserves only
-            arrMsg = `Inbound from expensive station. Assumed Light Arrival.`;
+            arrFuel = ac.hold + ac.extra; 
+            arrMsg = `Standard Arrival from ${pCode}.`;
         }
 
-        // --- 2. DEPARTURE LOGIC (SAFETY STACK) ---
-        // A. Trip Fuel
+        // --- OUTBOUND LOGIC (The Stack) ---
+        
+        // 1. Trip Fuel (Increased Burn Rate)
         const distTrip = getDist(curr, next);
-        const fuelTrip = distTrip * ac.burn;
+        const fuelTrip = Math.round(distTrip * ac.burn);
 
-        // B. Contingency (5% of Trip)
-        const fuelCont = fuelTrip * 0.05;
+        // 2. Taxi Fuel (Fixed)
+        const fuelTaxi = ac.taxi;
 
-        // C. Alternate Fuel (Auto-find)
+        // 3. Contingency (5% of Trip)
+        const fuelCont = Math.round(fuelTrip * 0.05);
+
+        // 4. Alternate Fuel
         const altData = findAlternate(next);
         let fuelAlt = 0;
-        let altName = "NONE";
-        
+        let altCode = "NONE";
         if (altData.stn) {
-            fuelAlt = altData.dist * ac.burn;
-            altName = altData.stn.code;
+            fuelAlt = Math.round(altData.dist * ac.burn);
+            altCode = altData.stn.code;
         }
 
-        // D. Final Reserve (30 mins fixed)
-        const fuelHold = ac.hold;
+        // 5. Final Reserve (Holding)
+        const fuelRes = ac.hold;
 
-        // E. MINIMUM REQUIRED FUEL (Regulatory Floor)
-        const minReqFuel = fuelTrip + fuelCont + fuelAlt + fuelHold;
+        // 6. Commander's Extra (Buffer)
+        const fuelExtra = ac.extra;
 
-        // --- 3. FINANCIAL LOGIC (Tankering Out) ---
+        // TOTAL MINIMUM BLOCK FUEL
+        const minBlockFuel = fuelTrip + fuelTaxi + fuelCont + fuelAlt + fuelRes + fuelExtra;
+
+        // --- FINANCIAL LOGIC ---
         let tankerAdd = 0;
         if (pCurr < pNext) {
-            tankerAdd = ac.max_tanker; // It's cheap here! Add extra on top of Safety Stack.
-            document.getElementById('strategy-msg').innerText = "✅ FILL MAX (Cheap Fuel)";
-            document.getElementById('strategy-msg').style.background = "#d4edda"; 
-            document.getElementById('strategy-msg').style.color = "#155724";
+            tankerAdd = ac.max_tanker; // It's cheap here!
+            document.getElementById('strategy-pill').innerText = "TANKERING RECOMMENDED";
+            document.getElementById('strategy-pill').style.background = "#00b894";
         } else {
-            tankerAdd = 0; // Expensive! Only take Safety Minimum.
-            document.getElementById('strategy-msg').innerText = "⚠️ FILL MINIMUM (Expensive)";
-            document.getElementById('strategy-msg').style.background = "#f8d7da";
-            document.getElementById('strategy-msg').style.color = "#721c24";
+            tankerAdd = 0;
+            document.getElementById('strategy-pill').innerText = "MINIMUM FUEL ADVISED";
+            document.getElementById('strategy-pill').style.background = "#e17055";
         }
 
-        const targetBlockFuel = minReqFuel + tankerAdd;
-
-        // --- 4. CALCULATE UPLIFT ---
-        let uplift = targetBlockFuel - arrFuel;
+        const targetFOB = minBlockFuel + tankerAdd;
+        
+        // --- UPLIFT ---
+        let uplift = targetFOB - arrFuel;
         if (uplift < 0) uplift = 0;
 
-        // --- DISPLAY ---
+        // --- UI UPDATE ---
         document.getElementById('result-panel').style.display = "block";
-        document.getElementById('disp-curr').innerText = currCode;
-        document.getElementById('final-uplift').innerText = Math.round(uplift).toLocaleString() + " kg";
+        document.getElementById('final-uplift').innerText = uplift.toLocaleString() + " kg";
         
-        // Arr Card
-        document.getElementById('arr-fuel').innerText = Math.round(arrFuel).toLocaleString() + " kg";
-        document.getElementById('prev-price').innerText = "₹" + pPrev.toFixed(0);
-        document.getElementById('arr-reason').innerText = arrMsg;
+        // Arrival Card
+        document.getElementById('lbl-prev').innerText = pCode;
+        document.getElementById('price-prev').innerText = "₹" + pPrev.toFixed(0);
+        document.getElementById('arr-fuel').innerText = arrFuel.toLocaleString() + " kg";
+        document.getElementById('arr-msg').innerText = arrMsg;
 
-        // Dep Card (Safety Stack)
-        document.getElementById('disp-next').innerText = nextCode;
-        document.getElementById('stack-trip').innerText = Math.round(fuelTrip).toLocaleString();
-        document.getElementById('stack-cont').innerText = Math.round(fuelCont).toLocaleString();
+        // Departure Stack
+        document.getElementById('s-trip').innerText = fuelTrip.toLocaleString();
+        document.getElementById('s-taxi').innerText = fuelTaxi.toLocaleString();
+        document.getElementById('s-cont').innerText = fuelCont.toLocaleString();
+        document.getElementById('alt-code').innerText = altCode;
+        document.getElementById('s-alt').innerText = fuelAlt.toLocaleString();
+        document.getElementById('s-res').innerText = fuelRes.toLocaleString();
+        document.getElementById('s-extra').innerText = fuelExtra.toLocaleString();
         
-        document.getElementById('alt-name').innerText = "Alt: " + altName;
-        document.getElementById('stack-alt').innerText = Math.round(fuelAlt).toLocaleString();
-        
-        document.getElementById('stack-hold').innerText = Math.round(fuelHold).toLocaleString();
-        document.getElementById('stack-min').innerText = Math.round(minReqFuel).toLocaleString() + " kg";
-
-        document.getElementById('tanker-add').innerText = "+ " + Math.round(tankerAdd).toLocaleString();
-        document.getElementById('block-fuel').innerText = Math.round(targetBlockFuel).toLocaleString() + " kg";
+        document.getElementById('s-total').innerText = minBlockFuel.toLocaleString() + " kg";
+        document.getElementById('tanker-add').innerText = "+ " + tankerAdd.toLocaleString() + " kg";
     }
 </script>
 
