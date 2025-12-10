@@ -4,25 +4,20 @@
     <meta charset="UTF-8">
     <title>IX Dispatch | Master Data</title>
     <style>
-        :root { --brand: #d63031; --dark: #2d3436; --light: #f5f6fa; --blue: #0984e3; --green: #00b894; --purple: #6c5ce7; }
+        :root { --brand: #d63031; --dark: #2d3436; --light: #f5f6fa; --blue: #0984e3; --green: #00b894; --gold: #f1c40f; }
         body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--light); color: var(--dark); padding: 20px; }
         
-        .container { max-width: 550px; margin: 0 auto; background: white; padding: 25px; border-radius: 12px; border-top: 6px solid var(--brand); box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 25px; border-radius: 12px; border-top: 6px solid var(--brand); box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
         h1 { margin: 0; font-size: 1.5rem; text-transform: uppercase; letter-spacing: 1px; text-align: center; }
         .sub { font-size: 0.8rem; color: #636e72; margin-bottom: 25px; text-align: center; }
-
-        /* SEARCH BAR */
-        .search-group { margin-bottom: 20px; position: relative; }
-        .search-input { width: 100%; padding: 15px 15px 15px 50px; border: 3px solid var(--dark); border-radius: 8px; font-size: 1.3rem; font-weight: 800; text-transform: uppercase; box-sizing: border-box; background: #fff; }
-        .search-input:focus { border-color: var(--brand); outline: none; }
-        .search-icon { position: absolute; left: 15px; top: 18px; font-size: 1.2rem; color: #b2bec3; }
 
         /* INPUTS */
         .row { display: flex; gap: 15px; margin-bottom: 20px; }
         .col { flex: 1; }
         label { font-size: 0.7rem; font-weight: 800; color: #b2bec3; text-transform: uppercase; display: block; margin-bottom: 5px; }
         input[type="text"], select { width: 100%; padding: 12px; border: 2px solid #dfe6e9; border-radius: 8px; font-size: 1.1rem; font-weight: 800; text-align: center; text-transform: uppercase; box-sizing: border-box; }
-        select { color: var(--dark); background: white; }
+        select { background: white; color: var(--dark); }
+        input:focus, select:focus { border-color: var(--brand); outline: none; background: #fff5f5; }
 
         /* SLIDER */
         .slider-box { background: #f1f2f6; padding: 20px; border-radius: 8px; border: 1px solid #e1e1e1; margin-top: 20px; }
@@ -45,243 +40,189 @@
         .d-val { font-size: 1.2rem; font-weight: 800; color: var(--dark); }
         .d-lbl { font-size: 0.65rem; font-weight: 700; color: #636e72; text-transform: uppercase; }
 
-        .cap-badge { display: inline-block; padding: 5px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 800; color: white; margin-bottom: 15px; }
+        .badge { display: inline-block; padding: 4px 10px; border-radius: 4px; font-size: 0.7rem; font-weight: 800; color: white; margin-bottom: 5px; }
+        .badge-green { background: var(--green); }
+        .badge-blue { background: var(--blue); }
+        .badge-gold { background: var(--gold); color: #8a6d3b; }
+
+        #db-status { font-size: 0.7rem; text-align: center; color: #aaa; margin-top: 10px; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <h1>⛽ IX Fuel Master</h1>
-    <p class="sub">Calibrated with 500+ Flight Data Points</p>
-
-    <div class="search-group">
-        <span class="search-icon">✈️</span>
-        <input type="text" id="flightNo" class="search-input" placeholder="Enter Flight (e.g. 1514)" onkeyup="lookupFlight()">
-    </div>
+    <p class="sub">Powered by Master Excel Data (CCU Uplifts)</p>
 
     <div class="row">
         <div class="col">
-            <label>Inbound From</label>
-            <input type="text" id="prev" placeholder="DEL" onkeyup="adjustSlider()">
-        </div>
-        <div class="col">
             <label>Destination</label>
-            <input type="text" id="next" placeholder="GAU">
+            <input type="text" id="next" placeholder="DEL">
         </div>
-    </div>
-
-    <div class="row" style="margin-bottom: 0;">
         <div class="col">
             <label>Aircraft Family</label>
             <select id="ac_type">
-                <option value="A320">Airbus A320 / A321</option>
-                <option value="B737">Boeing 737 / MAX</option>
+                <option value="A320">Airbus A320/321</option>
+                <option value="B737">Boeing 737/MAX</option>
                 <option value="B777">Boeing 777</option>
+                <option value="B757">Boeing 757</option>
             </select>
         </div>
     </div>
 
     <div class="slider-box">
         <div class="slider-head">
-            <span>Arrival Fuel (FOB)</span>
+            <span>Current FOB (Gauge)</span>
             <span id="fob-val">3000 kg</span>
         </div>
-        <input type="range" id="fob" min="1000" max="9000" step="100" value="3000" oninput="updateLabel(this.value)">
-        <div id="slider-note" class="slider-note">Manual Adjustment</div>
+        <input type="range" id="fob" min="0" max="10000" step="100" value="3000" oninput="updateLabel(this.value)">
+        <div id="slider-note" class="slider-note">Adjust based on arrival fuel</div>
     </div>
 
-    <button onclick="calculate()">CALCULATE UPLIFT</button>
+    <button onclick="calculate()">PREDICT UPLIFT</button>
+
+    <div id="db-status">Initializing Database...</div>
 
     <div id="res">
-        <div class="uplift-lbl">REQUIRED UPLIFT</div>
+        <div class="uplift-lbl">RECOMMENDED UPLIFT</div>
         <div id="uplift" class="uplift-num">0 kg</div>
-        <div id="cap-msg" class="cap-badge" style="background:#b2bec3;">Standard Profile</div>
+        <div id="data-badge" class="badge"></div>
 
         <div class="details">
             <div class="d-box">
-                <div class="d-lbl">Target Block Fuel</div>
-                <div id="block" class="d-val">0 kg</div>
+                <div class="d-lbl">Historical Avg Uplift</div>
+                <div id="hist-avg" class="d-val">0 kg</div>
             </div>
             <div class="d-box">
-                <div class="d-lbl">Sector Logic</div>
-                <div id="logic" class="d-val">-</div>
+                <div class="d-lbl">Derived Target Block</div>
+                <div id="target-block" class="d-val">0 kg</div>
             </div>
             <div class="d-box">
-                <div class="d-lbl">Est. Trip Fuel</div>
-                <div id="trip" class="d-val">0 kg</div>
+                <div class="d-lbl">Data Points Analyzed</div>
+                <div id="data-count" class="d-val">0</div>
             </div>
             <div class="d-box">
-                <div class="d-lbl">Safety Reserve</div>
-                <div id="stack" class="d-val">0 kg</div>
+                <div class="d-lbl">Logic Source</div>
+                <div id="logic-src" class="d-val">-</div>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    // --- 1. CONFIGURATION ---
-    const SHEET_URL = "airports.csv";
-    const AC_BURN = 4.1; 
+    // --- 1. THE MASTER DATA (Compressed from your upload) ---
+    // Format: "DEST,AC_TYPE,QTY_TONS"
+    // I have parsed the image data you provided into this raw string
+    const RAW_DATA = `
+IXA,A320,1.31|IXB,A320,2.81|IDR,A320,4.85|BLR,A321,5.85|BBI,A320,2|DEL,A321,5.08|HAN,A320,4.5|NAG,A320,3.81|DEL,B757,6.23|DEL,B777,14.5|BOM,A320,4.54|DEL,A320,3.17|DEL,A320,3.1|BOM,B777,17|DEL,A320,0.65|DEL,B777,13.1|DEL,A320,4.5|DEL,A320,3.12|DEL,A320,2.25|DEL,A320,2.23|BOM,A320,3.38|DEL,A320,0.69|DEL,A320,3.95|BOM,A320,4.62|BOM,A320,4.31|BOM,A320,3.65|BOM,A320,3.56|DEL,A320,2.78|MAA,B737,5.09|GAU,A320,2.43|IXZ,A320,8.35|BLR,A320,5.73|IXA,A320,1.19|HDO,A320,6.16|BLR,B737,2.55|IXZ,A320,7|BLR,B737,6.27|GAU,A320,4.04|BLR,B737,0.77|IXA,A320,2.08|MAA,A320,4.92|IXB,B737,2.38|GAU,A320,2.5|IXB,B737,1.6|DEL,A321,3.85|BOM,A321,7.08|GOI,A320,0.5|PNQ,A321,7.58|IMF,A321,1.96|DEL,A321,5.42|BOM,A321,4.99|BOM,A321,5.11|BBI,A320,3.12|HYD,A321,4.92|AMD,A320,3.15|RPR,A320,2.46|MAA,A320,5.46|DEL,A321,6.46|HYD,A321,4.42|HYD,A321,5.92|MAA,A321,4.57|BOM,A321,6.04|DEL,A321,4.77|JRH,A321,4.85|JAI,A321,5.85|IXA,A320,1.98|GAU,B757,0.74|DEL,B757,7|PBH,A320,4.63|DEL,A320,3.1|DEL,A320,2.25|DEL,A320,1.62|BOM,A320,5.77|BOM,A320,3.61|BOM,B777,19.1|DEL,A320,1.55|BOM,B777,1.92|BOM,A320,4.23|DEL,A320,1.54|DEL,B777,2.08|DEL,A320,3.42|DEL,A320,3.46|DEL,A320,1.89|BOM,A320,4.46|DEL,A320,4.94|DEL,B777,9.31|DEL,A320,1.96|BOM,A320,3.66|KUL,A320,10.9|BKK,A320,6.28|SIN,B737,2.41|HDO,A320,8.02|IXA,A320,1.77|MAA,B737,0.34|BLR,B737,1.71|BLR,A320,5.71|IXZ,A320,6.22|IXB,B737,1.93|IXZ,A320,6.65|BLR,A320,6.21|GAU,A320,2.96|GAU,A320,4.04|BLR,B737,3.83|GAU,A320,3.23|BLR,B737,2.9|MAA,A320,5.62|IXA,A320,1.88|IXB,B737,1.91|AMD,A320,6.08|IXA,A320,1.77|IXZ,A321,8.74|RPR,A320,2.44|IXS,A320,2.77|AJL,A320,2.38|MAA,A321,4.46|IMF,A321,2.55|MAA,A321,4.58|BLR,A321,5.34|JAI,A321,4.85|BOM,A321,5.54|DEL,A321,4.69|BLR,A321,5.17|IMF,A320,0.85|BBI,A320,1.31|DEL,A321,6.02|ATQ,A320,4.46|IXS,A320,4.04|DEL,A321,5.45|GAU,A321,2.53|BOM,A321,6.66|DEL,A321,5.21|IXB,A320,0.77|PAT,A320,0.46|HYD,A321,5.78|LKO,A320,0.19|DEL,A321,4.77|IXA,A320,0.23|SXR,A320,1|JAI,A320,0.5|PNQ,A321,5.77|RPR,A320,1.88|PAT,A320,1.79|DMU,A320,1.66|SGN,A321,10.2|HGI,A320,3.23|BLR,A321,5.15|BOM,A321,8|HYD,A321,3.96|GOI,A321,6.31|DEL,A321,5.42|IXB,A320,0.97|AJL,A320,0.81|IDR,A321,4.31|JRH,A321,5.62|IXZ,A320,7.57|DAC,A320,1.23|BBI,A320,1.85|BOM,A321,6.86|BLR,A321,6.15|HYD,A320,4.04|BLR,A321,5.15|JAI,A320,4.62|BLR,A321,5|MAA,A320,3.95|NAG,A320,3.89|HAN,A320,6.51|AMD,A320,4.17|IXA,A320,1.42|DEL,A321,5.18|BOM,A321,6.23|KUL,A320,9.21|DXB,B777,22.6|DXB,B777,28.1|DMK,A320,6.89|PBH,A320,0.8|BKK,A320,6.46|BKK,A320,7.02|VEAY,A320,0.65|DXB,A320,10.4|DMK,A320,8.08|LCL,A320,0.23|COH,A320,0.21|AMD,A320,1.94|BLR,A320,4.44|DEL,A320,4|BOM,A320,5.31|GAU,B757,0.77|BOM,A320,4.92|DEL,A320,4|DEL,A320,3.08|DEL,A320,2.25|DEL,A320,3.49|DEL,A320,2.51|DEL,A320,4.27|BOM,B777,17.3|DEL,A320,2.37|DEL,A320,4.91|BOM,A320,4.12|DEL,A320,4.19|BOM,A320,4.28|BOM,B777,50.3|DEL,A320,4.65|BOM,A320,5.71|BLR,A320,2.81|IXZ,A320,5.54|BLR,B737,5.58|IXB,B737,1.93|IXB,B737,1.75|BLR,B737,1.75|MAA,A320,4.81|GAU,A320,4.04|GAU,A320,2.92|RPR,A320,1.88|BLR,A321,5.31|MAA,A321,5.12|IXZ,A320,2.18|IXZ,A320,7.58|PNQ,A321,5.87|GOI,A320,1.65|IXZ,A321,8.56|IXA,A320,0.38|BOM,A320,5|AMD,A320,6.34|PAT,A321,2.27|PNQ,A321,7.46|AMD,A320,6.46|BOM,A321,5.4|JAI,A320,3.62|DEL,A321,5.67|BBI,A320,2.81|JAI,A321,6.23|BLR,A321,5.46|PAT,A320,1.4|SXR,A320,3.23|MAA,A321,5.88|NAG,A320,3.04|GOI,A320,2.09|DEL,A321,6.09|IXA,A320,2.27|RPR,A320,2.82|IXS,A320,4.04|JRH,A321,5.43|HYD,A321,5.43|JAI,A320,2.36|DEL,A321,5.12|BOM,A321,6.52|ATQ,A320,6.1|IMF,A321,1.92|DEL,A321,5.78|BOM,A321,6.69|HYD,A321,5.73|DEL,A321,4.77|DEL,A321,5.54|HYD,A321,5.81|VTZ,A320,3.42|DMU,A320,3.23|LKO,A320,3.32|BOM,A321,6.15|DEL,A321,5.38|BLR,A321,5.58|IXA,A320,0.5|JAI,A320,5.83|BBI,A320,2.77|BOM,A321,5.73|BLR,A321,5.15|DAC,A320,3.62|DEL,A321,5.15|DEL,A321,5|IXB,A321,0.84|MAA,A321,5.81|SGN,A321,10.1|HKT,A320,8|HAN,A320,4.02|HYD,A320,4.8|GAU,B757,2|DEL,B757,10.9|DEL,A320,3.65|DEL,A320,4.79|DEL,A320,4.49|BOM,A320,3.92|DEL,A320,4.5|DEL,A320,4.19|BOM,A320,4.62|BLR,B777,14.8|IXA,A320,1.28|JAI,A320,5.38|BLR,A321,5.37|DAC,A320,1.65|GOX,A320,6.38|IXS,A320,3.77|IDR,A320,3.82|IXZ,A320,7.5|PAT,A320,0.46|JAI,A320,0.92|PNQ,A321,6.42|NAG,A320,3.85|IXZ,A320,7.62|DEL,A320,4.65|DEL,A321,5.83|BOM,A321,6.33|BOM,A321,5.3|PAT,A320,0.35|SXR,A320,2.2|DEL,A321,5.19|DMU,A320,3.98|BLR,A321,4.96|MAA,A321,4.98|SGN,A321,10.6|MAA,A321,4.5|DEL,A321,4.54|HAN,A320,4.77|IXZ,A321,7.33|VTZ,A320,1.15|MAA,A321,5.15|AMD,A320,5.46|BLR,A321,5.95|IXA,A320,1.89|IXB,A320,1.04|BLR,A321,5.04|DEL,A321,5.03|LKO,A320,0.67|JAI,A320,4.46|HKT,A320,8.66|DEL,A321,4.84|DEL,A321,5.58|BOM,A321,5.74|GAU,B757,0.31|DEL,B757,7.77|DEL,A320,3.88|BOM,A320,5.12|DEL,A320,3.25|DEL,A320,4.06|BOM,B777,16.6|DEL,A320,3|BOM,A320,4.42|DEL,A320,2.27|BOM,A320,4.7|DEL,A320,3.69|DEL,A320,3.65|BOM,A320,5.06|BOM,A320,4.8|BOM,A320,4.95|DEL,B777,12.4|DEL,B777,15.9|DEL,A320,4.57|DEL,A320,4.37|IMF,A320,2.54|BLR,A320,4.75|HDO,A320,9.08|IXA,A320,2.4|IXA,A320,2.25|IXZ,A320,6.88|IMF,A320,3.31|MAA,B737,3.13|DEL,A320,4.79|BOM,A320,4.81|BOM,A320,4.8|DEL,B777,13.5|DEL,A320,4.54|DEL,A320,4.37|DEL,A320,4.43|BOM,A320,3.47|BOM,A320,4.95|DEL,A320,4.19|GAU,A320,2.62|IXB,B737,1.65|BLR,B737,5.12|BLR,B737,5.08|MAA,B737,6.06|BLR,A320,5.98|IXZ,A320,6.75|IMF,A320,2.7|HDO,A320,9.35|IXA,A320,2.25|IXA,A320,3.19|IXZ,A320,6.88|IXA,A320,3.16|GAU,A320,3.15|MAA,A320,5.81|IXB,B737,0.37|BBI,A320,1.55|DMU,A320,1.85|JRH,A321,5.52|HAN,A320,6.05|PAT,A320,1.54|IDR,A320,3.19|DEL,A321,6.62|PAT,A320,0.58|IXA,A320,0.98|HYD,A321,4.62|IXB,A320,0.75|IXB,A320,1.35|PNQ,A321,7.23|JAI,A321,5.65|BOM,A321,6.39|ATQ,A320,3.96|MAA,A321,4.78|RPR,A320,1.4|IMF,A321,1.34|IXZ,A321,8.96|IMF,A320,2.95|GAU,A320,2.2|AMD,A320,4.46|DEL,A321,4.81|IXA,A320,2.1|DEL,A321,5.63|BLR,A321,4.96|IXA,A320,1.19|LKO,A320,1.88|HYD,A321,4|DEL,A321,4.87|PAT,A320,2.92|DAC,A320,1.21|BOM,A321,6.01|HYD,A321,5.9|IXS,A320,3.15|JAI,A320,1|BLR,A321,5.44|IXZ,A320,7|MAA,A321,4.92|PNQ,A321,6.58|RPR,A320,1.85|BOM,A321,6.62|DEL,A321,5.77|BLR,A321,6.08|JAI,A320,1.23|VTZ,A320,0.58|BBI,A320,2|JAI,A320,4.25|DEL,A321,5.45|MAA,A320,4.83|SGN,A321,11.2|IXA,A320,1.81|AMD,A320,5.31|BOM,A321,5.94|SXR,A320,1.31|BLR,A321,5.15|IXR,A320,0.7`;
 
-    // --- 2. INTELLIGENT FLIGHT DB ---
-    // Derived from your specific uploaded briefing sheets & uplift patterns
-    const FLIGHT_DB = {
-        // High Uplift / Long Haul / Tankering Sectors
-        "2782": { dest: "IXZ", target: 10500, logic: "ISLAND OPS" },
-        "2784": { dest: "IXZ", target: 10500, logic: "ISLAND OPS" },
-        "1511": { dest: "IXZ", target: 10500, logic: "ISLAND OPS" },
-        "2985": { dest: "BLR", target: 10500, logic: "BLR METRO" },
-        "1254": { dest: "BOM", target: 10200, logic: "BOM METRO" },
-        
-        // Short Hops / Floors
-        "1514": { dest: "GAU", target: 7500, logic: "HEAVY TANKER" }, 
-        "1519": { dest: "GAU", target: 6100, logic: "SHORT HOP MIN" },
-        "1521": { dest: "IXA", target: 5500, logic: "IXA FLOOR" },
-        "1256": { dest: "IXB", target: 6000, logic: "IXB FLOOR" }
-    };
+    // --- 2. DATABASE INITIALIZATION ---
+    let STATS_DB = {}; 
 
-    // --- 3. SECTOR CAP LOGIC (From Spreadsheet Analysis) ---
-    const SECTOR_CAPS = {
-        // TIER 1: Ultra High / Tankering (10.5T)
-        "IXZ": 10500, "BLR": 10500, "PNQ": 10500, "SXR": 10500, 
-        
-        // TIER 2: High Metro (9.5T - 10.2T)
-        "BOM": 10200, "HYD": 9500, "MAA": 9500,
-        
-        // TIER 3: Medium / Standard (8.2T - 8.5T)
-        "DEL": 8200, "HDO": 8500, "ATQ": 8500, "JAI": 8500,
+    function initDB() {
+        const rows = RAW_DATA.split('|');
+        rows.forEach(row => {
+            const cols = row.split(',');
+            if(cols.length < 3) return;
 
-        // TIER 4: Floors (5.5T - 6.0T)
-        "GAU": 6000, "IXB": 6000, "IXA": 5500, "PAT": 5500, "RPR": 5500, "IMF": 6000
-    };
-    
-    let db = [];
+            const dest = cols[0].trim().toUpperCase();
+            let rawAC = cols[1].trim().toUpperCase();
+            const tons = parseFloat(cols[2]);
 
-    window.onload = async () => {
-        try {
-            const res = await fetch(SHEET_URL);
-            const txt = await res.text();
-            let rows = txt.split('\n');
-            for(let i=1; i<rows.length; i++) {
-                let c = rows[i].split(',');
-                if(c.length>=3) {
-                    let code = c[0].trim().replace(/"/g,"").toUpperCase();
-                    if(code) db.push({ code, lat: parseFloat(c[1]), lon: parseFloat(c[2]) });
-                }
-            }
-        } catch(e) {}
+            if(isNaN(tons)) return;
+            const kg = Math.round(tons * 1000);
+
+            // NORMALIZE AIRCRAFT
+            let acFamily = "UNKNOWN";
+            if (rawAC.includes("320") || rawAC.includes("321")) acFamily = "A320";
+            else if (rawAC.includes("737") || rawAC.includes("MAX")) acFamily = "B737";
+            else if (rawAC.includes("777")) acFamily = "B777";
+            else if (rawAC.includes("757")) acFamily = "B757";
+
+            // Initialize Structure
+            if(!STATS_DB[dest]) STATS_DB[dest] = {};
+            if(!STATS_DB[dest][acFamily]) STATS_DB[dest][acFamily] = { sum: 0, count: 0, uplifts: [] };
+
+            // Add Data
+            STATS_DB[dest][acFamily].sum += kg;
+            STATS_DB[dest][acFamily].count++;
+            STATS_DB[dest][acFamily].uplifts.push(kg);
+        });
+
+        // Debug
+        let total = 0;
+        Object.keys(STATS_DB).forEach(d => {
+            Object.keys(STATS_DB[d]).forEach(ac => total += STATS_DB[d][ac].count);
+        });
+        document.getElementById('db-status').innerText = `Database Ready: ${total} Flights Analyzed`;
+    }
+
+    // --- 3. UI LOGIC ---
+    window.onload = function() {
+        initDB();
     };
 
     function updateLabel(val) {
         document.getElementById('fob-val').innerText = val + " kg";
     }
 
-    // Auto-Lookup by Flight Number
-    function lookupFlight() {
-        // Strip non-numeric characters to handle 'IX1514' or '1514'
-        let raw = document.getElementById('flightNo').value.toUpperCase();
-        let num = raw.replace(/[^0-9]/g, ''); 
-        
-        let destField = document.getElementById('next');
-        
-        if(FLIGHT_DB[num]) {
-            let data = FLIGHT_DB[num];
-            destField.value = data.dest;
-            destField.style.backgroundColor = "#e1ffef"; 
-            destField.dataset.forcedTarget = data.target;
-            destField.dataset.forcedLogic = data.logic;
-        } else {
-            destField.style.backgroundColor = "white";
-            delete destField.dataset.forcedTarget;
-            delete destField.dataset.forcedLogic;
-        }
-    }
-
-    function adjustSlider() {
-        const p = document.getElementById('prev').value.toUpperCase();
-        const s = document.getElementById('fob');
-        const n = document.getElementById('slider-note');
-        
-        // Heuristic: Short sectors likely arrive with high fuel (Tankering in)
-        if(["GAU","IXB","IXA","JAI","PAT","RPR"].includes(p)) {
-            s.value = 5500;
-            n.innerText = "Auto: Tankered Arrival (High)";
-        } else {
-            s.value = 2800; // Standard metro arrival
-            n.innerText = "Auto: Standard Arrival (Low)";
-        }
-        updateLabel(s.value);
-    }
-
     function calculate() {
-        const next = document.getElementById('next').value.toUpperCase();
-        const fob = parseInt(document.getElementById('fob').value);
-        const forcedTarget = document.getElementById('next').dataset.forcedTarget;
-        const forcedLogic = document.getElementById('next').dataset.forcedLogic;
+        const dest = document.getElementById('next').value.toUpperCase();
         const acType = document.getElementById('ac_type').value;
+        const currentFOB = parseInt(document.getElementById('fob').value);
 
-        // B777 Logic Override
-        let burnRate = AC_BURN;
-        if(acType === "B777") burnRate = 8.5; 
+        if (!dest) { alert("Please enter a destination"); return; }
 
-        const org = db.find(a => a.code === "CCU"); 
-        const dst = db.find(a => a.code === next);
+        let avgUplift = 0;
+        let dataCount = 0;
+        let badgeText = "";
+        let badgeClass = "";
+        let logicSrc = "";
 
-        if(!org || !dst) { alert("Airport not found"); return; }
-
-        // Calc Distance
-        const R = 6371;
-        const dLat = (dst.lat - org.lat)*Math.PI/180;
-        const dLon = (dst.lon - org.lon)*Math.PI/180;
-        const a = Math.sin(dLat/2)**2 + Math.cos(org.lat*Math.PI/180)*Math.cos(dst.lat*Math.PI/180) * Math.sin(dLon/2)**2;
-        const dist = R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
-        
-        let trip = Math.round(dist * burnRate);
-        
-        // --- MASTER TARGET LOGIC ---
-        let targetBlock = 0;
-        let logicName = "";
-        let badgeColor = "#b2bec3"; 
-
-        if (forcedTarget) {
-            // 1. Flight Number Match
-            targetBlock = parseInt(forcedTarget);
-            logicName = forcedLogic;
-            badgeColor = "#00b894"; 
-        }
-        else if (SECTOR_CAPS[next]) {
-            // 2. Destination Sector Cap (Data Driven)
-            targetBlock = SECTOR_CAPS[next];
-            logicName = "SECTOR PROFILE";
-            badgeColor = "#0984e3"; 
-        } 
-        else if (trip < 2500) {
-            // 3. Floor for unknown short hops
-            targetBlock = 6000;
-            logicName = "MIN FLOOR (6T)";
-        } 
-        else {
-            // 4. Standard Formula
-            targetBlock = trip + 4100;
-            logicName = "STANDARD +4T";
+        // LOOKUP DATA
+        if (STATS_DB[dest] && STATS_DB[dest][acType]) {
+            const data = STATS_DB[dest][acType];
+            avgUplift = Math.round(data.sum / data.count);
+            dataCount = data.count;
+            badgeText = "MASTER DATA FOUND";
+            badgeClass = "badge-green";
+            logicSrc = "Historical Average";
+        } else {
+            // FALLBACK LOGIC (If route not in excel)
+            badgeText = "NO DATA - ESTIMATED";
+            badgeClass = "badge-gold";
+            logicSrc = "Generic Estimate";
+            // Simple generic fallbacks
+            if(acType === "A320") avgUplift = 4000;
+            if(acType === "B737") avgUplift = 4000;
+            if(acType === "B777") avgUplift = 14000;
+            if(acType === "B757") avgUplift = 6000;
         }
 
-        let uplift = targetBlock - fob;
-        if(uplift < 0) uplift = 0;
-        let stack = targetBlock - trip;
+        // PREDICTION LOGIC
+        // We assume the historical average uplift resulted in a successful flight.
+        // But we must account for the user's specific arrival fuel (FOB).
+        // If user has MORE fuel than 'Standard' (3000kg), they need LESS uplift.
+        // If user has LESS fuel than 'Standard', they need MORE uplift.
+        
+        const STANDARD_ARRIVAL_FOB = 3000; // Calibrated A320 arrival
+        const derivedTargetBlock = avgUplift + STANDARD_ARRIVAL_FOB;
+        
+        let recommendedUplift = derivedTargetBlock - currentFOB;
+        if (recommendedUplift < 0) recommendedUplift = 0;
 
         // Display
         document.getElementById('res').style.display = "block";
-        document.getElementById('uplift').innerText = uplift.toLocaleString() + " kg";
+        document.getElementById('uplift').innerText = recommendedUplift.toLocaleString() + " kg";
         
-        document.getElementById('block').innerText = targetBlock.toLocaleString() + " kg";
-        document.getElementById('trip').innerText = trip.toLocaleString() + " kg";
-        document.getElementById('stack').innerText = "+" + stack.toLocaleString() + " kg";
-        document.getElementById('logic').innerText = logicName;
-        
-        const badge = document.getElementById('cap-msg');
-        badge.innerText = `TARGET: ${targetBlock} kg`;
-        badge.style.background = badgeColor;
+        document.getElementById('hist-avg').innerText = avgUplift.toLocaleString() + " kg";
+        document.getElementById('target-block').innerText = derivedTargetBlock.toLocaleString() + " kg";
+        document.getElementById('data-count').innerText = dataCount;
+        document.getElementById('logic-src').innerText = logicSrc;
+
+        const badge = document.getElementById('data-badge');
+        badge.innerText = badgeText;
+        badge.className = "badge " + badgeClass;
     }
 </script>
 
