@@ -3,275 +3,268 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aircraft Fuel Calculator (DGCA Standard)</title>
+    <title>Aircraft Fuel & Cost Optimizer</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; line-height: 1.6; background-color: #f4f4f9; color: #333; }
-        .container { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        h2 { text-align: center; color: #2c3e50; }
+        :root { --primary: #007bff; --secondary: #6c757d; --success: #28a745; --bg: #f4f7f6; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; max-width: 900px; margin: 2rem auto; background-color: var(--bg); color: #333; }
+        .container { background: white; padding: 2.5rem; border-radius: 12px; box-shadow: 0 6px 20px rgba(0,0,0,0.08); }
+        h2 { text-align: center; color: #2c3e50; margin-bottom: 0.5rem; }
+        .subtitle { text-align: center; color: var(--secondary); font-size: 0.9rem; margin-bottom: 2rem; }
+        
+        /* Grid Layout */
+        .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
         .input-group { margin-bottom: 1rem; }
-        label { display: block; margin-bottom: 0.5rem; font-weight: 600; color: #555; }
-        input, select { width: 100%; padding: 0.8rem; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 1rem; }
-        button { width: 100%; background-color: #007bff; color: white; padding: 1rem; border: none; border-radius: 6px; cursor: pointer; font-size: 1.1rem; font-weight: bold; transition: background 0.3s; }
+        .full-width { grid-column: span 2; }
+        
+        label { display: block; margin-bottom: 0.5rem; font-weight: 600; font-size: 0.9rem; }
+        input, select { width: 100%; padding: 0.8rem; border: 1px solid #ced4da; border-radius: 6px; font-size: 1rem; box-sizing: border-box; }
+        
+        button { width: 100%; background-color: var(--primary); color: white; padding: 1rem; border: none; border-radius: 6px; font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: background 0.2s; }
         button:hover { background-color: #0056b3; }
-        .result-box { margin-top: 2rem; background-color: #fff; border: 1px solid #e1e1e1; border-radius: 8px; padding: 1.5rem; display: none; }
-        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #eee; }
-        th { background-color: #f8f9fa; color: #495057; }
-        .total-row { font-weight: bold; background-color: #e9ecef; }
-        .highlight { color: #007bff; font-weight: bold; }
-        .error { color: #dc3545; background: #f8d7da; padding: 1rem; border-radius: 6px; margin-top: 1rem; display: none; text-align: center; }
-        .note { font-size: 0.85rem; color: #666; margin-top: 0.5rem; }
+        
+        /* Results */
+        .result-box { margin-top: 2rem; display: none; }
+        .summary-card { background: #e3f2fd; padding: 1.5rem; border-radius: 8px; border-left: 5px solid var(--primary); margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; }
+        .cost-card { background: #d4edda; padding: 1.5rem; border-radius: 8px; border-left: 5px solid var(--success); margin-top: 1.5rem; }
+        
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        th, td { text-align: left; padding: 12px 15px; border-bottom: 1px solid #eee; }
+        th { background-color: #f8f9fa; font-weight: 600; color: #495057; }
+        .total-row { font-weight: 700; background-color: #f1f3f5; }
+        .final-cost { font-size: 1.5rem; color: #155724; font-weight: bold; }
+        
+        .error { color: #721c24; background-color: #f8d7da; padding: 1rem; border-radius: 6px; display: none; margin-bottom: 1rem; text-align: center; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>✈️ Fuel Planner (IATA)</h2>
-    <p style="text-align:center; margin-bottom: 2rem;">DGCA Compliant Fuel Estimation (Trip + Contingency + Alternate + Reserve)</p>
-
-    <div class="input-group">
-        <label for="origin">Origin Airport (IATA Code):</label>
-        <input type="text" id="origin" placeholder="e.g., DEL" maxlength="3" style="text-transform: uppercase;">
-    </div>
-
-    <div class="input-group">
-        <label for="destination">Destination Airport (IATA Code):</label>
-        <input type="text" id="destination" placeholder="e.g., BOM" maxlength="3" style="text-transform: uppercase;">
-    </div>
-
-    <div class="input-group">
-        <label for="aircraft">Aircraft Type:</label>
-        <select id="aircraft">
-            <option value="A320">Airbus A320 (ceo/neo avg)</option>
-            <option value="B737">Boeing 737-800</option>
-            <option value="B777">Boeing 777-300ER (Long Haul)</option>
-        </select>
-    </div>
-
-    <div class="input-group">
-        <label for="weather">Captain's Extra Fuel (%):</label>
-        <input type="number" id="weather" value="0" min="0" max="20" placeholder="Optional weather buffer">
-        <div class="note">Additional percentage added to Trip Fuel for weather anomalies.</div>
-    </div>
-
-    <button onclick="calculateFuel()">Calculate Fuel Required</button>
+    <h2>✈️ Aircraft Fuel & Cost Optimizer</h2>
+    <p class="subtitle">DGCA Compliant Fuel Planning • Live Tax Calculation</p>
 
     <div id="error-msg" class="error"></div>
 
+    <div class="input-grid">
+        <div class="input-group">
+            <label>Origin Airport (IATA)</label>
+            <input type="text" id="origin" placeholder="e.g. DEL" maxlength="3" style="text-transform: uppercase;">
+        </div>
+        <div class="input-group">
+            <label>Destination Airport (IATA)</label>
+            <input type="text" id="destination" placeholder="e.g. BOM" maxlength="3" style="text-transform: uppercase;">
+        </div>
+        <div class="input-group full-width">
+            <label>Aircraft Type</label>
+            <select id="aircraft">
+                <option value="A320">Airbus A320 (Burn: 2400 kg/hr)</option>
+                <option value="B737">Boeing 737-800 (Burn: 2500 kg/hr)</option>
+                <option value="B777">Boeing 777-300ER (Burn: 7500 kg/hr)</option>
+            </select>
+        </div>
+        <div class="input-group full-width">
+            <label>Weather / Captain's Buffer (%)</label>
+            <input type="number" id="weather" value="0" min="0" max="20" placeholder="Optional safety margin">
+        </div>
+    </div>
+
+    <button onclick="calculateProfile()">Calculate Flight Plan & Cost</button>
+
     <div id="results" class="result-box">
-        <h3 style="margin-top:0;">Flight Plan Summary</h3>
-        <p>
-            Route: <span id="route-display" class="highlight"></span><br>
-            Distance: <span id="dist-val" class="highlight"></span> NM | 
-            Flight Time: <span id="time-val" class="highlight"></span>
-        </p>
+        
+        <div class="summary-card">
+            <div>
+                <strong>Route:</strong> <span id="route-display"></span><br>
+                <small>Distance: <span id="dist-val"></span> NM</small>
+            </div>
+            <div style="text-align: right;">
+                <strong>Flight Time:</strong> <span id="time-val"></span><br>
+                <small>Origin Tax Rate: <span id="tax-rate-display"></span></small>
+            </div>
+        </div>
+
         <table>
             <thead>
                 <tr>
-                    <th>Fuel Component</th>
-                    <th>DGCA/Standard Rule</th>
+                    <th>Component</th>
+                    <th>Rule / Notes</th>
                     <th>Mass (kg)</th>
                 </tr>
             </thead>
             <tbody>
-                <tr>
-                    <td>Taxi Fuel</td>
-                    <td>Standard APU + Taxi</td>
-                    <td id="taxi-fuel"></td>
-                </tr>
-                <tr>
-                    <td>Trip Fuel</td>
-                    <td>Cruise Burn (A to B)</td>
-                    <td id="trip-fuel"></td>
-                </tr>
-                <tr>
-                    <td>Contingency</td>
-                    <td>5% of Trip Fuel (En-route winds)</td>
-                    <td id="cont-fuel"></td>
-                </tr>
-                <tr>
-                    <td>Alternate</td>
-                    <td>Diversion (Assumed 200 NM)</td>
-                    <td id="alt-fuel"></td>
-                </tr>
-                <tr>
-                    <td>Final Reserve</td>
-                    <td>30 mins Hold @ 1500ft</td>
-                    <td id="res-fuel"></td>
-                </tr>
-                <tr>
-                    <td>Extra (Weather)</td>
-                    <td>Captain's Discretion</td>
-                    <td id="extra-fuel"></td>
-                </tr>
-                <tr class="total-row">
-                    <td>MIN TAKEOFF FUEL</td>
-                    <td>Regulatory Minimum</td>
-                    <td id="min-takeoff"></td>
-                </tr>
-                <tr class="total-row" style="background-color: #d1ecf1; border-top: 2px solid #007bff;">
-                    <td>BLOCK FUEL</td>
-                    <td>Total Fuel on Board</td>
-                    <td id="block-fuel"></td>
-                </tr>
+                <tr><td>Taxi Fuel</td><td>Start-up & Taxi (Standard)</td><td id="taxi-fuel"></td></tr>
+                <tr><td>Trip Fuel</td><td>Cruise Burn</td><td id="trip-fuel"></td></tr>
+                <tr><td>Contingency</td><td>5% of Trip (DGCA Mandatory)</td><td id="cont-fuel"></td></tr>
+                <tr><td>Alternate</td><td>Diversion (200 NM)</td><td id="alt-fuel"></td></tr>
+                <tr><td>Final Reserve</td><td>30 mins Hold @ 1500ft</td><td id="res-fuel"></td></tr>
+                <tr><td>Extra</td><td>Weather / Captain Discretion</td><td id="extra-fuel"></td></tr>
+                <tr class="total-row"><td>BLOCK FUEL</td><td>Total Required</td><td id="block-fuel" style="color: var(--primary);"></td></tr>
             </tbody>
         </table>
+
+        <div class="cost-card">
+            <h3 style="margin-top:0; color: #155724;">💰 Estimated Fuel Cost</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div>
+                    <label>Volume Required (L)</label>
+                    <div id="vol-liters" style="font-weight:bold;"></div>
+                    <small style="color:#666;">Density: 0.80 kg/L</small>
+                </div>
+                <div>
+                    <label>Base Price (₹90/L)</label>
+                    <div id="base-cost"></div>
+                </div>
+                <div>
+                    <label>Tax (<span id="tax-pct"></span>%)</label>
+                    <div id="tax-amt"></div>
+                </div>
+                <div>
+                    <label>Total Payable</label>
+                    <div id="total-cost" class="final-cost"></div>
+                </div>
+            </div>
+        </div>
+
     </div>
 </div>
 
 <script>
-    // --- 1. CONFIGURATION ---
-    
-    // Performance Assumptions (kg/hr and Knots TAS)
+    // --- CONFIGURATION ---
+    const FUEL_PRICE_PER_LITER = 90; // INR
+    const FUEL_DENSITY = 0.80;       // kg per Liter (Standard Jet A1)
+    const DEFAULT_TAX = 4.0;         // Default % if blank
+
     const aircraftData = {
-        "A320": { speed: 450, burn: 2400 }, 
-        "B737": { speed: 450, burn: 2500 }, 
-        "B777": { speed: 490, burn: 7500 } // Added a widebody for example
+        "A320": { speed: 450, burn: 2400 },
+        "B737": { speed: 450, burn: 2500 },
+        "B777": { speed: 490, burn: 7500 }
     };
 
     let airports = {};
 
-    // --- 2. LOAD DATA ---
+    // --- LOAD DATABASE ---
     window.onload = function() {
-        // Fetch the CSV file from the same directory
         fetch('airports.csv')
-            .then(response => {
-                if (!response.ok) throw new Error("Could not find airports.csv. Make sure it is in the same folder.");
-                return response.text();
+            .then(res => {
+                if (!res.ok) throw new Error("CSV file not found.");
+                return res.text();
             })
-            .then(data => {
-                const rows = data.split('\n');
-                rows.forEach(row => {
-                    // Split by comma
-                    const cols = row.split(',');
-                    if(cols.length >= 3) {
-                        // cols[0] is now IATA (e.g., DEL)
+            .then(text => {
+                const lines = text.split('\n');
+                lines.forEach(line => {
+                    const cols = line.split(',');
+                    
+                    // NEW PARSING LOGIC: [0]=Code, [1]=Lat, [2]=Lon, [3]=Tax
+                    if (cols.length >= 3) {
                         const code = cols[0].trim().toUpperCase();
-                        // Basic validation to ensure it looks like a code
-                        if(code.length === 3) {
-                            airports[code] = {
-                                lat: parseFloat(cols[2]),
-                                lon: parseFloat(cols[3])
-                            };
+                        
+                        let taxVal = null;
+                        // Check if 4th column exists and has value
+                        if (cols[3] && cols[3].trim() !== "") {
+                            taxVal = parseFloat(cols[3]);
                         }
+                        
+                        airports[code] = {
+                            lat: parseFloat(cols[1]), // Column 2 in Excel is Index 1
+                            lon: parseFloat(cols[2]), // Column 3 in Excel is Index 2
+                            tax: taxVal
+                        };
                     }
                 });
-                console.log(`Database loaded: ${Object.keys(airports).length} airports.`);
+                console.log(`Loaded ${Object.keys(airports).length} airports.`);
             })
-            .catch(err => {
-                document.getElementById('error-msg').innerText = "System Error: " + err.message;
-                document.getElementById('error-msg').style.display = 'block';
-            });
+            .catch(e => showError(e.message));
     };
 
-    // --- 3. MATH HELPERS ---
-    
-    // Haversine Formula for Distance (Nautical Miles)
-    function getDistanceNM(lat1, lon1, lat2, lon2) {
-        const R = 3440.065; // Earth radius in NM
-        const toRad = val => val * Math.PI / 180;
-        
-        const dLat = toRad(lat2 - lat1);
-        const dLon = toRad(lon2 - lon1);
-        
-        const a = 
-            Math.sin(dLat/2) * Math.sin(dLat/2) +
-            Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon/2) * Math.sin(dLon/2); 
-            
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
-        return R * c;
-    }
-
-    // --- 4. CALCULATION LOGIC ---
-    function calculateFuel() {
-        // Clear previous errors/results
-        const errBox = document.getElementById('error-msg');
-        const resBox = document.getElementById('results');
-        errBox.style.display = 'none';
-        resBox.style.display = 'none';
-
-        // Inputs
-        const originInput = document.getElementById('origin').value.trim().toUpperCase();
-        const destInput = document.getElementById('destination').value.trim().toUpperCase();
+    // --- LOGIC ---
+    function calculateProfile() {
+        hideError();
+        const originCode = getValue('origin');
+        const destCode = getValue('destination');
         const acType = document.getElementById('aircraft').value;
         const weatherPct = parseFloat(document.getElementById('weather').value) || 0;
 
-        // Validation
-        if (!originInput || !destInput) {
-            showError("Please enter both Origin and Destination codes.");
-            return;
-        }
-        if (!airports[originInput]) {
-            showError(`Airport code '${originInput}' not found in database.`);
-            return;
-        }
-        if (!airports[destInput]) {
-            showError(`Airport code '${destInput}' not found in database.`);
+        if (!airports[originCode] || !airports[destCode]) {
+            showError("Invalid Origin or Destination Code.");
             return;
         }
 
-        const origin = airports[originInput];
-        const dest = airports[destInput];
+        const origin = airports[originCode];
+        const dest = airports[destCode];
         const ac = aircraftData[acType];
 
-        // 1. Distance & Time
-        const distNM = getDistanceNM(origin.lat, origin.lon, dest.lat, dest.lon);
-        const flightTimeHours = distNM / ac.speed;
+        // Physics
+        const dist = getDistance(origin.lat, origin.lon, dest.lat, dest.lon);
+        const timeHrs = dist / ac.speed;
 
-        // 2. Fuel Components (DGCA Logic)
-        
-        // Taxi: Fixed standard (200kg for narrowbody is standard, slightly higher for widebody, but we keep 250 avg)
-        const taxiFuel = (acType === "B777") ? 500 : 200; 
-
-        // Trip Fuel: Flight Time * Burn Rate
-        const tripFuel = flightTimeHours * ac.burn;
-
-        // Contingency: 5% of Trip Fuel (Mandatory)
-        const contingencyFuel = tripFuel * 0.05;
-
-        // Alternate: Standard diversion (Assumed 200NM distance)
-        // Formula: (Distance / Speed) * Burn
-        const altDist = 200; 
-        const altFuel = (altDist / ac.speed) * ac.burn;
-
-        // Final Reserve: 30 mins holding
-        const reserveFuel = 0.5 * ac.burn;
-
-        // Extra: Percentage of Trip Fuel
+        // Fuel Mass (kg)
+        const tripFuel = timeHrs * ac.burn;
+        const contFuel = tripFuel * 0.05;
+        const altFuel = (200 / ac.speed) * ac.burn;
+        const resFuel = 0.5 * ac.burn;
         const extraFuel = tripFuel * (weatherPct / 100);
+        const taxiFuel = (acType === "B777") ? 500 : 200;
+        const blockFuelKg = taxiFuel + tripFuel + contFuel + altFuel + resFuel + extraFuel;
 
-        // 3. Totals
-        const minTakeoff = tripFuel + contingencyFuel + altFuel + reserveFuel + extraFuel;
-        const blockFuel = minTakeoff + taxiFuel;
-
-        // 4. Display (Formatting numbers)
-        document.getElementById('route-display').innerText = `${originInput} ➝ ${destInput}`;
-        document.getElementById('dist-val').innerText = Math.round(distNM);
+        // Cost
+        let appliedTax = origin.tax;
+        let isDefaultTax = false;
         
-        // Time formatting
-        const h = Math.floor(flightTimeHours);
-        const m = Math.round((flightTimeHours - h) * 60);
-        document.getElementById('time-val').innerText = `${h}h ${m}m`;
+        if (appliedTax === null || isNaN(appliedTax)) {
+            appliedTax = DEFAULT_TAX;
+            isDefaultTax = true;
+        }
 
-        // Update Table
-        document.getElementById('taxi-fuel').innerText = Math.round(taxiFuel);
-        document.getElementById('trip-fuel').innerText = Math.round(tripFuel);
-        document.getElementById('cont-fuel').innerText = Math.round(contingencyFuel);
-        document.getElementById('alt-fuel').innerText = Math.round(altFuel);
-        document.getElementById('res-fuel').innerText = Math.round(reserveFuel);
-        document.getElementById('extra-fuel').innerText = Math.round(extraFuel);
-        document.getElementById('min-takeoff').innerText = Math.round(minTakeoff);
-        document.getElementById('block-fuel').innerText = Math.round(blockFuel);
+        const blockFuelLiters = blockFuelKg / FUEL_DENSITY;
+        const baseCost = blockFuelLiters * FUEL_PRICE_PER_LITER;
+        const taxAmount = baseCost * (appliedTax / 100);
+        const totalCost = baseCost + taxAmount;
 
-        // Show result box
-        resBox.style.display = 'block';
+        // Render
+        document.getElementById('results').style.display = 'block';
+        setText('route-display', `${originCode} ➝ ${destCode}`);
+        setText('dist-val', Math.round(dist));
+        setText('time-val', formatTime(timeHrs));
+        setText('tax-rate-display', `${appliedTax}% ${isDefaultTax ? '(Default)' : '(Airport)'}`);
+
+        setText('taxi-fuel', fmtNum(taxiFuel));
+        setText('trip-fuel', fmtNum(tripFuel));
+        setText('cont-fuel', fmtNum(contFuel));
+        setText('alt-fuel', fmtNum(altFuel));
+        setText('res-fuel', fmtNum(resFuel));
+        setText('extra-fuel', fmtNum(extraFuel));
+        setText('block-fuel', fmtNum(blockFuelKg));
+
+        setText('vol-liters', fmtNum(blockFuelLiters) + " L");
+        setText('base-cost', "₹ " + fmtMoney(baseCost));
+        setText('tax-pct', appliedTax);
+        setText('tax-amt', "₹ " + fmtMoney(taxAmount));
+        setText('total-cost', "₹ " + fmtMoney(totalCost));
     }
 
+    // --- HELPERS ---
+    function getDistance(lat1, lon1, lat2, lon2) {
+        const R = 3440.065; 
+        const dLat = rad(lat2 - lat1);
+        const dLon = rad(lon2 - lon1);
+        const a = Math.sin(dLat/2)**2 + Math.cos(rad(lat1)) * Math.cos(rad(lat2)) * Math.sin(dLon/2)**2;
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    }
+    function rad(deg) { return deg * (Math.PI/180); }
+    function getValue(id) { return document.getElementById(id).value.trim().toUpperCase(); }
+    function setText(id, val) { document.getElementById(id).innerText = val; }
+    function fmtNum(n) { return Math.round(n).toLocaleString(); }
+    function fmtMoney(n) { return Math.round(n).toLocaleString('en-IN'); }
+    function formatTime(h) {
+        const hours = Math.floor(h);
+        const mins = Math.round((h - hours) * 60);
+        return `${hours}h ${mins}m`;
+    }
     function showError(msg) {
         const el = document.getElementById('error-msg');
         el.innerText = msg;
         el.style.display = 'block';
     }
+    function hideError() { document.getElementById('error-msg').style.display = 'none'; }
 </script>
 
 </body>
