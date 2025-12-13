@@ -3,246 +3,243 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Aircraft Fuel Calculator</title>
+    <title>Indian Aviation Fuel Planner</title>
     <style>
-        :root { --primary: #2c3e50; --accent: #3498db; --bg: #ecf0f1; --card-bg: #ffffff; }
-        body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 850px; margin: 2rem auto; background-color: var(--bg); color: #333; }
-        .container { background: var(--card-bg); padding: 2.5rem; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        h2 { text-align: center; color: var(--primary); margin-bottom: 0.5rem; font-weight: 700; }
-        .badge { background: #e1f5fe; color: #0277bd; padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: bold; vertical-align: middle; }
+        :root { --primary: #b71c1c; --accent: #ff5722; --bg: #fdfbf7; } /* Indian Airline Theme Colors */
+        body { font-family: 'Segoe UI', sans-serif; max-width: 850px; margin: 2rem auto; background: var(--bg); color: #333; }
+        .container { background: white; padding: 2.5rem; border-radius: 12px; box-shadow: 0 5px 25px rgba(0,0,0,0.1); }
         
-        /* Grid */
+        /* Badge Styles */
+        .badge-container { text-align: center; margin-bottom: 2rem; }
+        .badge { background: #ffebee; color: #c62828; padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; border: 1px solid #ffcdd2; margin: 0 5px; }
+        
+        /* Grid Layout */
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
-        label { display: block; margin-bottom: 0.5rem; font-weight: 600; font-size: 0.9rem; color: #555; }
-        input, select { width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; box-sizing: border-box; transition: border 0.3s; }
+        .full { grid-column: span 2; }
+        
+        label { display: block; margin-bottom: 0.5rem; font-weight: 700; color: #424242; font-size: 0.9rem; }
+        input, select { width: 100%; padding: 0.9rem; border: 2px solid #eee; border-radius: 8px; font-size: 1rem; transition: border 0.3s; }
         input:focus, select:focus { border-color: var(--accent); outline: none; }
         
-        button { width: 100%; background-color: var(--accent); color: white; padding: 1rem; border: none; border-radius: 8px; font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: transform 0.1s, background 0.2s; }
-        button:hover { background-color: #2980b9; transform: translateY(-1px); }
-        
-        /* Dashboard Results */
-        .dashboard { margin-top: 2rem; display: none; border-top: 2px solid #f1f1f1; padding-top: 2rem; }
-        .kpi-row { display: flex; justify-content: space-between; margin-bottom: 1.5rem; text-align: center; }
-        .kpi-card { background: #f8f9fa; padding: 1rem; border-radius: 10px; width: 30%; }
-        .kpi-val { font-size: 1.4rem; font-weight: 800; color: var(--primary); display: block; }
-        .kpi-label { font-size: 0.85rem; color: #7f8c8d; }
+        button { width: 100%; background: var(--primary); color: white; padding: 1.1rem; border: none; border-radius: 8px; font-size: 1.1rem; font-weight: bold; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; }
+        button:hover { background: #d32f2f; }
 
-        table { width: 100%; border-collapse: collapse; margin-top: 1rem; font-size: 0.95rem; }
-        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #eee; }
-        th { color: #7f8c8d; font-weight: 600; text-transform: uppercase; font-size: 0.8rem; }
-        .total-row td { border-top: 2px solid #333; font-weight: bold; font-size: 1.1rem; color: #2c3e50; }
+        /* Results Dashboard */
+        .results { display: none; margin-top: 2rem; background: #fff; border-top: 4px solid var(--primary); }
         
-        .cost-box { background: #dff9fb; border: 1px solid #c7ecee; color: #130f40; padding: 1.5rem; border-radius: 10px; margin-top: 2rem; }
-        .cost-header { font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; color: #535c68; margin-bottom: 0.5rem; }
-        .big-price { font-size: 2rem; font-weight: 800; color: #27ae60; }
+        .factors-box { background: #fff3e0; padding: 1rem; border-radius: 8px; font-size: 0.85rem; color: #e65100; display: flex; justify-content: space-around; margin-bottom: 1.5rem; border: 1px solid #ffe0b2; }
         
-        .error { color: #c0392b; background: #fadbd8; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; display: none; text-align: center; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; border-bottom: 1px solid #eee; text-align: left; }
+        .total-row { font-weight: 800; font-size: 1.2rem; background: #fafafa; color: #b71c1c; }
+        
+        .cost-row { display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 2px dashed #ccc; }
+        .cost-big { font-size: 2rem; font-weight: 800; color: #2e7d32; }
+        
+        .error { color: red; text-align: center; display: none; margin-bottom: 1rem; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>✈️ Fuel Planner <span class="badge">AI Tuned</span></h2>
-    <p style="text-align:center; color:#7f8c8d; margin-bottom: 2rem;">Calibrated for A320/B737 Indian Domestic Ops</p>
+    <h2 style="text-align: center; margin-bottom: 0.5rem;">✈️ Flight Operations Calculator</h2>
+    
+    <div class="badge-container">
+        <span class="badge">Condition: 100% Load Factor</span>
+        <span class="badge">Condition: Aged Aircraft (+4% Burn)</span>
+    </div>
 
     <div id="error-msg" class="error"></div>
 
     <div class="grid-2">
         <div>
             <label>Origin (IATA)</label>
-            <input type="text" id="origin" placeholder="e.g. CCU" maxlength="3" style="text-transform: uppercase;">
+            <input type="text" id="origin" placeholder="CCU" maxlength="3" style="text-transform: uppercase;">
         </div>
         <div>
             <label>Destination (IATA)</label>
-            <input type="text" id="destination" placeholder="e.g. BOM" maxlength="3" style="text-transform: uppercase;">
+            <input type="text" id="dest" placeholder="DEL" maxlength="3" style="text-transform: uppercase;">
         </div>
         <div>
-            <label>Aircraft Profile</label>
-            <select id="aircraft">
-                <option value="NB">Narrowbody (A320/B737)</option>
-                <option value="WB">Widebody (B777/A350)</option>
+            <label>Aircraft Type</label>
+            <select id="ac">
+                <option value="NB">A320 / B737 (Narrowbody)</option>
+                <option value="WB">B777 / A350 (Widebody)</option>
             </select>
         </div>
         <div>
-            <label>Weather / Buffer (%)</label>
-            <input type="number" id="weather" value="0" placeholder="0">
+            <label>Route Weather</label>
+            <select id="weather">
+                <option value="0">Clear (Standard)</option>
+                <option value="5">Moderate (Monsoon)</option>
+                <option value="10">Severe (Storms)</option>
+            </select>
         </div>
     </div>
 
-    <button onclick="calculateSmartFuel()">Calculate Block Fuel & Cost</button>
+    <button onclick="calculate()">Compute Fuel & Cost</button>
 
-    <div id="results" class="dashboard">
+    <div id="res" class="results">
         
-        <div class="kpi-row">
-            <div class="kpi-card">
-                <span class="kpi-val" id="dist-val">0</span>
-                <span class="kpi-label">Airway Dist (NM)</span>
-            </div>
-            <div class="kpi-card">
-                <span class="kpi-val" id="time-val">00:00</span>
-                <span class="kpi-label">Flight Time</span>
-            </div>
-            <div class="kpi-card">
-                <span class="kpi-val" id="tax-disp">4%</span>
-                <span class="kpi-label">State Tax Rate</span>
-            </div>
+        <div class="factors-box">
+            <span><strong>Perf Factor:</strong> +4% (Age)</span>
+            <span><strong>Payload:</strong> High (Full Pax)</span>
+            <span><strong>Airway Correction:</strong> +12%</span>
         </div>
 
         <table>
             <thead>
                 <tr>
-                    <th>Fuel Component</th>
-                    <th>Calculation Logic</th>
+                    <th>Component</th>
+                    <th>Logic / Regulation</th>
                     <th>Mass (kg)</th>
                 </tr>
             </thead>
             <tbody>
                 <tr>
                     <td>Trip Fuel</td>
-                    <td>Burn × Time (Inc. Climb)</td>
-                    <td id="trip-fuel"></td>
+                    <td>Burn + Age/Load Penalty</td>
+                    <td id="val-trip"></td>
                 </tr>
                 <tr>
                     <td>Contingency</td>
-                    <td>5% Regulatory</td>
-                    <td id="cont-fuel"></td>
+                    <td>5% of Trip Fuel</td>
+                    <td id="val-cont"></td>
                 </tr>
                 <tr>
-                    <td>Fixed Reserves</td>
-                    <td>Alternate + Hold + Taxi</td>
-                    <td id="fixed-fuel"></td>
+                    <td>Alt + Reserve</td>
+                    <td>Div to Alt + 30m Hold</td>
+                    <td id="val-res"></td>
+                </tr>
+                <tr>
+                    <td>Taxi</td>
+                    <td>Operational Std</td>
+                    <td id="val-taxi"></td>
                 </tr>
                 <tr>
                     <td>Extra</td>
                     <td>Weather Buffer</td>
-                    <td id="extra-fuel"></td>
+                    <td id="val-extra"></td>
                 </tr>
                 <tr class="total-row">
                     <td>BLOCK FUEL</td>
-                    <td>Total Required</td>
-                    <td id="block-fuel"></td>
+                    <td>Ramp Total</td>
+                    <td id="val-block"></td>
                 </tr>
             </tbody>
         </table>
 
-        <div class="cost-box">
-            <div class="cost-header">Estimated Total Cost (Inc. Tax)</div>
-            <div class="big-price" id="total-cost">₹ 0</div>
-            <div style="margin-top: 5px; font-size: 0.85rem;">
-                Based on <span id="vol-liters"></span> Liters @ ₹90/L base price
+        <div class="cost-row">
+            <div>
+                <strong>Estimated Cost</strong><br>
+                <span style="font-size: 0.9rem; color: #666;">Incl. Tax (<span id="tax-disp"></span>)</span>
             </div>
+            <div class="cost-big" id="val-cost">₹ 0</div>
         </div>
-
     </div>
 </div>
 
 <script>
-    // --- 1. TUNED PARAMETERS (Machine Learning Style Adjustment) ---
-    // Ground Truth Data provided: CCU-BOM (10.3T), CCU-DEL (8.2T), CCU-BLR (9.5T)
+    // --- PHYSICS ENGINE CONFIGURATION ---
     
-    const TUNING = {
-        routeInefficiency: 1.12, // +12% distance for Airways/SID/STAR vs Straight Line
-        density: 0.80,           // kg/L
-        price: 90,               // INR/L
-        defaultTax: 4.0          // %
+    // 1. BASELINE (Factory New, Empty)
+    const BASE_AC = {
+        "NB": { burn: 2300, speed: 450, taxi: 200, fixedRes: 2800 }, 
+        "WB": { burn: 6500, speed: 490, taxi: 500, fixedRes: 6000 }
     };
 
-    const AIRCRAFT = {
-        "NB": { 
-            // Narrowbody (A320/737)
-            speed: 450, 
-            burn: 2800, // Increased from 2400 to account for Climb/Drag average
-            fixedReserves: 3200 // Combined (Alt 1500 + Res 1200 + Taxi 500)
-        },
-        "WB": { 
-            // Widebody
-            speed: 490, 
-            burn: 7500, 
-            fixedReserves: 6500 
-        }
+    // 2. REALITY FACTORS (The User's Constraints)
+    const FACTORS = {
+        agePenalty: 1.04,     // +4% for "Moderately Old" engines
+        loadPenalty: 1.15,    // +15% fuel burn for "Full Payload" vs Empty
+        airwayInefficiency: 1.12 // +12% distance for Zig-Zag airways
+    };
+
+    // 3. FINANCIALS
+    const FIN = {
+        density: 0.80,
+        price: 90,
+        defTax: 4.0
     };
 
     let airports = {};
 
-    // --- 2. LOAD DATA ---
-    window.onload = function() {
+    window.onload = () => {
         fetch('airports.csv').then(r => r.text()).then(d => {
-            d.split('\n').forEach(row => {
-                const c = row.split(',');
+            d.split('\n').forEach(line => {
+                const c = line.split(',');
                 if(c.length >= 3) {
-                    // CSV: Code, Lat, Lon, Tax
-                    const code = c[0].trim().toUpperCase();
-                    const tax = (c[3] && c[3].trim()) ? parseFloat(c[3]) : null;
-                    airports[code] = { lat: parseFloat(c[1]), lon: parseFloat(c[2]), tax: tax };
+                    airports[c[0].trim().toUpperCase()] = { 
+                        lat: parseFloat(c[1]), 
+                        lon: parseFloat(c[2]), 
+                        tax: c[3] ? parseFloat(c[3]) : null 
+                    };
                 }
             });
         });
     };
 
-    // --- 3. CALCULATE ---
-    function calculateSmartFuel() {
+    function calculate() {
         document.getElementById('error-msg').style.display = 'none';
         
-        const origin = document.getElementById('origin').value.trim().toUpperCase();
-        const dest = document.getElementById('destination').value.trim().toUpperCase();
-        const type = document.getElementById('aircraft').value;
-        const wxPct = parseFloat(document.getElementById('weather').value) || 0;
+        const org = document.getElementById('origin').value.trim().toUpperCase();
+        const dst = document.getElementById('dest').value.trim().toUpperCase();
+        const acType = document.getElementById('ac').value;
+        const wxPct = parseFloat(document.getElementById('weather').value);
 
-        if(!airports[origin] || !airports[dest]) {
-            showError("Airport not found. Check CSV.");
+        if(!airports[org] || !airports[dst]) {
+            document.getElementById('error-msg').innerText = "Airport code not found.";
+            document.getElementById('error-msg').style.display = 'block';
             return;
         }
 
-        const ac = AIRCRAFT[type];
-        const dep = airports[origin];
-        const arr = airports[dest];
+        const dep = airports[org];
+        const arr = airports[dst];
+        const basePlane = BASE_AC[acType];
 
-        // 1. Distance Calculation (Great Circle)
+        // --- STEP 1: CALCULATE DISTANCE ---
+        // Apply Airway Inefficiency (Planes don't fly straight)
         const rawDist = getDist(dep.lat, dep.lon, arr.lat, arr.lon);
-        
-        // 2. Apply "Route Inefficiency" (The ML Tuning Factor)
-        // Real flights are longer than straight lines.
-        const airwayDist = rawDist * TUNING.routeInefficiency;
+        const flightDist = rawDist * FACTORS.airwayInefficiency;
+        const time = flightDist / basePlane.speed;
 
-        // 3. Flight Time
-        const timeHrs = airwayDist / ac.speed;
+        // --- STEP 2: CALCULATE BURN RATE ---
+        // Formula: Base Burn * Age Factor * Load Factor
+        // Example: 2300 * 1.04 * 1.15 = ~2750 kg/hr (This matches the calibrated real world)
+        const realBurnRate = basePlane.burn * FACTORS.agePenalty * FACTORS.loadPenalty;
 
-        // 4. Fuel Math
-        const tripFuel = timeHrs * ac.burn;
-        const contFuel = tripFuel * 0.05; // 5%
+        // --- STEP 3: FUEL COMPONENTS ---
+        const tripFuel = time * realBurnRate;
+        const contFuel = tripFuel * 0.05; // 5% Mandated
         const extraFuel = tripFuel * (wxPct / 100);
         
-        // Fixed Reserves (The intercept adjustment)
-        // Combines Alternate, Holding, and Taxi into one robust figure to match your 8-10T data.
-        const fixedFuel = ac.fixedReserves; 
+        // Fixed Reserves (Alt + Hold) need to be adjusted for weight too? 
+        // Generally Reserves are calculated at holding speed (lower burn), 
+        // but we use a fixed robust block for safety.
+        const reserveBlock = basePlane.fixedRes; 
+        const taxiFuel = basePlane.taxi;
 
-        const blockFuel = tripFuel + contFuel + fixedFuel + extraFuel;
+        const blockFuel = tripFuel + contFuel + reserveBlock + taxiFuel + extraFuel;
 
-        // 5. Cost Math
-        const taxRate = (dep.tax !== null) ? dep.tax : TUNING.defaultTax;
-        const liters = blockFuel / TUNING.density;
-        const baseCost = liters * TUNING.price;
-        const taxAmt = baseCost * (taxRate / 100);
-        const totalCost = baseCost + taxAmt;
+        // --- STEP 4: COST ---
+        const taxRate = (dep.tax !== null) ? dep.tax : FIN.defTax;
+        const liters = blockFuel / FIN.density;
+        const totalCost = (liters * FIN.price) * (1 + taxRate/100);
 
-        // 6. Display
-        document.getElementById('results').style.display = 'block';
+        // --- RENDER ---
+        document.getElementById('res').style.display = 'block';
         
-        setText('dist-val', Math.round(airwayDist));
-        setText('time-val', toTime(timeHrs));
-        setText('tax-disp', taxRate + "%");
-
-        setText('trip-fuel', fmt(tripFuel));
-        setText('cont-fuel', fmt(contFuel));
-        setText('fixed-fuel', fmt(fixedFuel));
-        setText('extra-fuel', fmt(extraFuel));
-        setText('block-fuel', fmt(blockFuel) + " kg"); // Final Block
-
-        setText('vol-liters', fmt(liters));
-        setText('total-cost', "₹ " + Math.round(totalCost).toLocaleString('en-IN'));
+        set('val-trip', fmt(tripFuel));
+        set('val-cont', fmt(contFuel));
+        set('val-res', fmt(reserveBlock));
+        set('val-taxi', fmt(taxiFuel));
+        set('val-extra', fmt(extraFuel));
+        set('val-block', fmt(blockFuel) + " kg");
+        
+        set('tax-disp', taxRate + "%");
+        set('val-cost', "₹ " + Math.round(totalCost).toLocaleString('en-IN'));
     }
 
-    // --- UTILS ---
     function getDist(lat1, lon1, lat2, lon2) {
         const R = 3440.065; 
         const dLat = (lat2-lat1)*Math.PI/180;
@@ -250,14 +247,8 @@
         const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
         return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     }
-    function showError(m) { const e = document.getElementById('error-msg'); e.innerText = m; e.style.display = 'block'; }
-    function setText(id, t) { document.getElementById(id).innerText = t; }
+    function set(id, v) { document.getElementById(id).innerText = v; }
     function fmt(n) { return Math.round(n).toLocaleString(); }
-    function toTime(h) {
-        const hr = Math.floor(h);
-        const mn = Math.round((h-hr)*60);
-        return `${hr}h ${mn}m`;
-    }
 </script>
 
 </body>
